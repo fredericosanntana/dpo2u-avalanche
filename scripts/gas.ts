@@ -14,7 +14,7 @@ async function main() {
   await r.authorizeSubmitter(await a.getAddress(), true);
   await r.authorizeSubmitter(admin.address, true);
   const t1 = await (await r.registerAttestation(id("uc"), id("e"), id("s"), 1, 1, id("m"), Math.floor(Date.now() / 1000) + 86400 * 30)).wait();
-  const t2 = await (await a.submitProof(fs.readFileSync(path.join(fx, "public_values.bin")), fs.readFileSync(path.join(fx, "proof.bin")), id("m"))).wait();
+  const t2 = await (await a.submitProof(fs.readFileSync(path.join(fx, "public_values.bin")), fs.readFileSync(path.join(fx, "proof.bin")))).wait();
   console.log(`registerAttestation gas=${t1!.gasUsed}`);
   console.log(`submitProof (SP1 Groth16 verify + seal) gas=${t2!.gasUsed}`);
 }

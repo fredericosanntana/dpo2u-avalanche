@@ -84,6 +84,12 @@ describe("DPO2UComplianceRegistry", () => {
       .to.be.revertedWithCustomError(reg, "ValidityTooLong");
   });
 
+  it("rejects a zero evidence hash (it is the no-record sentinel)", async () => {
+    const { reg, submitter } = await deploy();
+    await expect(reg.connect(submitter).registerAttestation(UC, ethers.ZeroHash, SUBJECT, PASS, MACHINE, META, await exp()))
+      .to.be.revertedWithCustomError(reg, "ZeroEvidenceHash");
+  });
+
   it("rejects verdict NONE", async () => {
     const { reg, submitter } = await deploy();
     await expect(reg.connect(submitter).registerAttestation(UC, id("e"), SUBJECT, 0, MACHINE, META, await exp()))

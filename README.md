@@ -16,13 +16,13 @@ What is here (phase 0 and the core of phase 1):
 
 ```bash
 npm install
-npm test          # 27 tests, including the real SP1 proof
+npm test          # 28 tests, including the real SP1 proof
 npm run gas
 ```
 
 The compiler is the `solc@0.8.20` npm package (solcjs), so nothing is downloaded at build time. 0.8.20 is pinned because the vendored SP1 Groth16 verifier requires it.
 
-Measured gas on the local network: `registerAttestation` about 194k, `submitProof` (Groth16 verify + seal) about 411k.
+Measured gas on the local network: `registerAttestation` about 194k, `submitProof` (Groth16 verify + seal) about 412k.
 
 ## Deploy to Fuji
 
