@@ -9,6 +9,7 @@ What is here (phase 0 and the core of phase 1):
 | Interface spec | `contracts/interfaces/IDPO2UAttestation.sol`, `docs/SPEC.md` | chain-neutral attestation model: PASS/FAIL/REVIEW, verdict origin, pack hash, mandatory expiry |
 | Registry | `contracts/DPO2UComplianceRegistry.sol` | the seal. Use cases, authorized submitters, revocation, `isValid` / `isSubjectCompliant` oracle |
 | ZK attestor | `contracts/DPO2UZkThresholdAttestor.sol` | verifies the DPO2U SP1 v6.1.0 Groth16 proof of `score ≥ threshold` (the same proof verified on Solana) and seals a MACHINE-origin PASS. The score never touches the chain |
+| Travel Rule gate | `contracts/DPO2UTravelRuleGate.sol`, `docs/TRAVEL-RULE-GATE.md` | port of the Soroban `defindex-rebalance-gate`: an operator action runs only with operator, validity, anti-replay, intent binding and a PASS (registry attestation or Groth16 proof), optionally with both Travel Rule parties compliant |
 | SP1 verifier | `contracts/vendor/sp1/` | vendored, unmodified, from [succinctlabs/sp1-contracts](https://github.com/succinctlabs/sp1-contracts) tag `v6.1.0` (MIT) |
 | SDK | `src/` | `AvalancheChainAnchor`, shape-compatible with the DPO2U control-plane `ChainAnchorPort`; Avalanche networks in CAIP-2 |
 
@@ -16,7 +17,7 @@ What is here (phase 0 and the core of phase 1):
 
 ```bash
 npm install
-npm test          # 27 tests, including the real SP1 proof
+npm test          # 51 tests, including the real SP1 proof
 npm run gas
 ```
 

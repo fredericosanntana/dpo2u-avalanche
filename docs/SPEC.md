@@ -39,4 +39,4 @@ An attestation is keyed by `(useCaseId, evidenceHash)` and is written once.
 
 ## Next interfaces (later phases)
 
-`Passport` (tier, sponsorship, status), `Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern).
+`Passport` (tier, sponsorship, status), `Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern). First version: `contracts/DPO2UTravelRuleGate.sol`, see `docs/TRAVEL-RULE-GATE.md`.
