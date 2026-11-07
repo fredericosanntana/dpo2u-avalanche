@@ -23,7 +23,7 @@ The evidence hash binds `chainid`, the gate, the current target, `useCaseId`, sc
 The lane is picked by the number of public signals, same as Soroban:
 
 - 3 signals, policy circuit `[pass, commit, context]`: `pass` must be 1 (`ProofNotPass`), context must match (`BadProofContext`).
-- 4 signals, membership circuit `[root, nullifier, recipient, context]`: `root` must equal the admitted root (`NonMemberRoot`, `AdmittedRootNotSet`), the nullifier must be unused (`NullifierReplay`), context must match. The nullifier is burned only after the proof verifies.
+- 4 signals, membership circuit `[root, nullifier, recipient, context]`: `root` must equal the admitted root (`NonMemberRoot`, `AdmittedRootNotSet`), the nullifier must be unused (`NullifierReplay`), `recipient` must equal `deriveRecipientSignal(beneficiary)` (the beneficiary subject hash masked to 248 bits, `BadProofRecipient`), context must match. The nullifier is burned only after the proof verifies.
 - anything else: `BadProofSignals`.
 
 The admitted root comes from `rootProvider.currentRoot()` when a provider is set, otherwise from the root pinned with `setAdmittedRoot`.
@@ -32,12 +32,14 @@ The admitted root comes from `rootProvider.currentRoot()` when a provider is set
 
 - Verifiers are immutable, one per lane, set at deploy (SPEC invariant 6). On Soroban the admin pins a verifier address and a VK. EVM Groth16 verifiers embed their VK, so each circuit is its own deployment. A zero address disables that lane (`VerifierNotSet`).
 - Nullifiers have their own set, separate from consumed evidence.
+- The membership lane binds the `recipient` signal to the beneficiary. Soroban leaves it unchecked, which would let a proof for one recipient authorize a transfer to another.
+- Verifier interfaces use fixed-size signal arrays (`uint256[3]`, `uint256[4]`), the ABI snarkjs generates, so the ceremony verifiers plug in without an adapter.
 - The attestation lane also enforces registry revocation and expiry (`isValid`), not just the verdict.
 - Optional party check (step 5), the Travel Rule part: both ends must hold a valid attestation under `partyUseCaseId` (e.g. the PSAV passport use case).
 - Hashes are `keccak256(abi.encode(...))` instead of `sha256(XDR)`. The context is masked to 248 bits so it fits the BN254 field.
 - Reentrancy guard and two-step admin transfer, as in the registry.
 
-Error names and the numbering 1 to 14 follow the Soroban `GateError`.
+Error names and the numbering 1 to 14 follow the Soroban `GateError`. `BadProofRecipient` (15) is new.
 
 ## Relation to the Midnight `TravelRuleGate.compact`
 

@@ -1,14 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @notice Groth16 verifier with its verifying key baked in (snarkjs/circom style,
-///         one deployment per circuit). The gate never accepts a caller-supplied VK.
-interface IGroth16Verifier {
+/// @notice Groth16 verifiers with their verifying key baked in, one deployment per
+///         circuit. The signatures match what snarkjs `zkey export solidityverifier`
+///         generates (fixed-size public-signal arrays), so the generated verifiers plug
+///         in directly. The gate never accepts a caller-supplied VK.
+/// Policy circuit, 3 public signals: [pass, commit, context]
+interface IPolicyVerifier {
     function verifyProof(
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
-        uint256[] calldata pubSignals
+        uint256[3] calldata pubSignals
+    ) external view returns (bool);
+}
+
+/// Membership circuit, 4 public signals: [root, nullifier, recipient, context]
+interface IMembershipVerifier {
+    function verifyProof(
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256[4] calldata pubSignals
     ) external view returns (bool);
 }
 

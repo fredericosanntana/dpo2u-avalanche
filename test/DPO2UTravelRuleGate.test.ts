@@ -7,6 +7,7 @@ const MACHINE = 0;
 const DAY = 86_400;
 const id = (s: string) => ethers.keccak256(ethers.toUtf8Bytes(s));
 const ZERO = ethers.ZeroHash;
+const MASK = (1n << 248n) - 1n;
 
 describe("DPO2UTravelRuleGate", () => {
   const UC = id("travel-rule-adjacent@1");
@@ -17,6 +18,7 @@ describe("DPO2UTravelRuleGate", () => {
   const META = id("run-summary");
   const PAYLOAD = ethers.AbiCoder.defaultAbiCoder().encode(["string", "uint256"], ["unwind", 1000n]);
   const parties = { originator: ORIG, beneficiary: BENE };
+  const REC = BigInt(id("eip155:43113:0x00000000000000000000000000000000000000B2")) & MASK;
   const proof = { a: [1n, 2n], b: [[3n, 4n], [5n, 6n]], c: [7n, 8n] };
 
   async function deploy(opts: { partyUc?: string; noVerifiers?: boolean } = {}) {
@@ -26,9 +28,8 @@ describe("DPO2UTravelRuleGate", () => {
     await reg.configureUseCase(PARTY_UC, true, id("pack:passport"), 1);
     await reg.authorizeSubmitter(submitter.address, true);
 
-    const V = await ethers.getContractFactory("MockGroth16Verifier");
-    const policyV = await V.deploy();
-    const memberV = await V.deploy();
+    const policyV = await (await ethers.getContractFactory("MockPolicyVerifier")).deploy();
+    const memberV = await (await ethers.getContractFactory("MockMembershipVerifier")).deploy();
     const target = await (await ethers.getContractFactory("MockGatedTarget")).deploy();
     const provider = await (await ethers.getContractFactory("MockRootProvider")).deploy();
 
@@ -235,23 +236,23 @@ describe("DPO2UTravelRuleGate", () => {
     const i1 = await intent(gate, operator, 1n);
     const ctx1 = await gate.deriveZkContext(i1.ev);
 
-    await expect(runZk(gate, operator, i1, [BigInt(root), nul, 0n, ctx1])).to.be.revertedWithCustomError(
+    await expect(runZk(gate, operator, i1, [BigInt(root), nul, REC, ctx1])).to.be.revertedWithCustomError(
       gate,
       "AdmittedRootNotSet",
     );
     await gate.setAdmittedRoot(root);
-    await expect(runZk(gate, operator, i1, [BigInt(id("other-root")), nul, 0n, ctx1])).to.be.revertedWithCustomError(
+    await expect(runZk(gate, operator, i1, [BigInt(id("other-root")), nul, REC, ctx1])).to.be.revertedWithCustomError(
       gate,
       "NonMemberRoot",
     );
-    await runZk(gate, operator, i1, [BigInt(root), nul, 0n, ctx1]);
+    await runZk(gate, operator, i1, [BigInt(root), nul, REC, ctx1]);
     expect(await gate.consumedNullifier(ethers.toBeHex(nul, 32))).to.equal(true);
     expect(await target.calls()).to.equal(1);
 
     // fresh intent, same credential → nullifier replay
     const i2 = await intent(gate, operator, 2n);
     const ctx2 = await gate.deriveZkContext(i2.ev);
-    await expect(runZk(gate, operator, i2, [BigInt(root), nul, 0n, ctx2])).to.be.revertedWithCustomError(
+    await expect(runZk(gate, operator, i2, [BigInt(root), nul, REC, ctx2])).to.be.revertedWithCustomError(
       gate,
       "NullifierReplay",
     );
@@ -265,13 +266,13 @@ describe("DPO2UTravelRuleGate", () => {
     const i = await intent(gate, operator);
     const ctx = await gate.deriveZkContext(i.ev);
     await memberV.setResult(false);
-    await expect(runZk(gate, operator, i, [BigInt(root), nul, 0n, ctx])).to.be.revertedWithCustomError(
+    await expect(runZk(gate, operator, i, [BigInt(root), nul, REC, ctx])).to.be.revertedWithCustomError(
       gate,
       "ZkVerifyFailed",
     );
     expect(await gate.consumedNullifier(ethers.toBeHex(nul, 32))).to.equal(false);
     await memberV.setResult(true);
-    await runZk(gate, operator, i, [BigInt(root), nul, 0n, ctx]);
+    await runZk(gate, operator, i, [BigInt(root), nul, REC, ctx]);
   });
 
   it("membership proof: the live root provider overrides the pinned root", async () => {
@@ -281,13 +282,27 @@ describe("DPO2UTravelRuleGate", () => {
     await gate.setRootProvider(await provider.getAddress());
     const i = await intent(gate, operator);
     const ctx = await gate.deriveZkContext(i.ev);
-    await expect(runZk(gate, operator, i, [BigInt(id("pinned")), 1n, 0n, ctx])).to.be.revertedWithCustomError(
+    await expect(runZk(gate, operator, i, [BigInt(id("pinned")), 1n, REC, ctx])).to.be.revertedWithCustomError(
       gate,
       "NonMemberRoot",
     );
-    await runZk(gate, operator, i, [BigInt(id("live")), 1n, 0n, ctx]);
+    await runZk(gate, operator, i, [BigInt(id("live")), 1n, REC, ctx]);
     await gate.setRootProvider(ethers.ZeroAddress);
     expect(await gate.resolveAdmittedRoot()).to.equal(id("pinned"));
+  });
+
+  it("membership proof: a proof for another recipient is rejected", async () => {
+    const { gate, operator } = await deploy();
+    const root = id("admitted-set-root");
+    await gate.setAdmittedRoot(root);
+    const i = await intent(gate, operator);
+    const ctx = await gate.deriveZkContext(i.ev);
+    expect(await gate.deriveRecipientSignal(BENE)).to.equal(REC);
+    const otherRec = BigInt(id("someone-else")) & MASK;
+    await expect(runZk(gate, operator, i, [BigInt(root), 7n, otherRec, ctx])).to.be.revertedWithCustomError(
+      gate,
+      "BadProofRecipient",
+    );
   });
 
   // ── Admin / safety ────────────────────────────────────────────────────────

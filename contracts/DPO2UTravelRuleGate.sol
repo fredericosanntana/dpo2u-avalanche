@@ -3,7 +3,8 @@ pragma solidity ^0.8.20;
 
 import {IDPO2UAttestation} from "./interfaces/IDPO2UAttestation.sol";
 import {
-    IGroth16Verifier,
+    IPolicyVerifier,
+    IMembershipVerifier,
     IAdmittedRootProvider,
     IGatedTarget,
     TravelParties,
@@ -53,6 +54,7 @@ contract DPO2UTravelRuleGate {
     error NonMemberRoot(); // 12
     error NullifierReplay(); // 13
     error AdmittedRootNotSet(); // 14
+    error BadProofRecipient(); // 15: membership proof issued for another recipient
     // EVM-only
     error AttestationNotValid(); // PASS but revoked or expired in the registry
     error PartyNotCompliant();
@@ -66,9 +68,9 @@ contract DPO2UTravelRuleGate {
 
     IDPO2UAttestation public immutable registry;
     /// 3 public signals: [pass, commit, context]
-    IGroth16Verifier public immutable policyVerifier;
+    IPolicyVerifier public immutable policyVerifier;
     /// 4 public signals: [root, nullifier, recipient, context]
-    IGroth16Verifier public immutable membershipVerifier;
+    IMembershipVerifier public immutable membershipVerifier;
 
     address public admin;
     address public pendingAdmin;
@@ -124,8 +126,8 @@ contract DPO2UTravelRuleGate {
         address target_,
         bytes32 useCaseId_,
         bytes32 partyUseCaseId_,
-        IGroth16Verifier policyVerifier_,
-        IGroth16Verifier membershipVerifier_
+        IPolicyVerifier policyVerifier_,
+        IMembershipVerifier membershipVerifier_
     ) {
         if (admin_ == address(0) || address(registry_) == address(0) || target_ == address(0)) revert ZeroAddress();
         admin = admin_;
@@ -216,6 +218,13 @@ contract DPO2UTravelRuleGate {
         return uint256(keccak256(abi.encode(ZK_CONTEXT_TAG, evidenceHash))) & FIELD_MASK;
     }
 
+    /// Recipient public signal a membership proof must carry: the beneficiary subject
+    /// hash reduced to 248 bits. Without this, a membership proof issued for one
+    /// recipient could authorize a transfer to another beneficiary.
+    function deriveRecipientSignal(bytes32 beneficiary) public pure returns (uint256) {
+        return uint256(beneficiary) & FIELD_MASK;
+    }
+
     function resolveAdmittedRoot() public view returns (bytes32) {
         if (rootProvider != address(0)) return IAdmittedRootProvider(rootProvider).currentRoot();
         if (admittedRoot == bytes32(0)) revert AdmittedRootNotSet();
@@ -264,29 +273,28 @@ contract DPO2UTravelRuleGate {
         _validateCommon(scope, nonce, expiresAt, evidenceHash, parties, payload);
 
         uint256 expectedContext = deriveZkContext(evidenceHash);
-        IGroth16Verifier verifier;
-        bytes32 nullifier;
 
         if (pubSignals.length == 3) {
             if (pubSignals[0] != 1) revert ProofNotPass();
             if (pubSignals[2] != expectedContext) revert BadProofContext();
-            verifier = policyVerifier;
+            if (address(policyVerifier) == address(0)) revert VerifierNotSet();
+            uint256[3] memory sig = [pubSignals[0], pubSignals[1], pubSignals[2]];
+            if (!policyVerifier.verifyProof(proof.a, proof.b, proof.c, sig)) revert ZkVerifyFailed();
         } else if (pubSignals.length == 4) {
             if (bytes32(pubSignals[0]) != resolveAdmittedRoot()) revert NonMemberRoot();
-            nullifier = bytes32(pubSignals[1]);
+            bytes32 nullifier = bytes32(pubSignals[1]);
             if (consumedNullifier[nullifier]) revert NullifierReplay();
+            if (pubSignals[2] != deriveRecipientSignal(parties.beneficiary)) revert BadProofRecipient();
             if (pubSignals[3] != expectedContext) revert BadProofContext();
-            verifier = membershipVerifier;
+            if (address(membershipVerifier) == address(0)) revert VerifierNotSet();
+            uint256[4] memory sig = [pubSignals[0], pubSignals[1], pubSignals[2], pubSignals[3]];
+            if (!membershipVerifier.verifyProof(proof.a, proof.b, proof.c, sig)) revert ZkVerifyFailed();
+            // Burn the nullifier only after the proof verifies, so a failed verify
+            // cannot grief-lock someone else's nullifier.
+            consumedNullifier[nullifier] = true;
         } else {
             revert BadProofSignals();
         }
-
-        if (address(verifier) == address(0)) revert VerifierNotSet();
-        if (!verifier.verifyProof(proof.a, proof.b, proof.c, pubSignals)) revert ZkVerifyFailed();
-
-        // Burn the nullifier only after the proof verifies, so a failed verify
-        // cannot grief-lock someone else's nullifier.
-        if (pubSignals.length == 4) consumedNullifier[nullifier] = true;
 
         _forward(scope, nonce, expiresAt, evidenceHash, payload, "zk", bytes32(expectedContext));
     }

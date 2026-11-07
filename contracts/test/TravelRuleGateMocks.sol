@@ -1,17 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IGroth16Verifier, IAdmittedRootProvider, IGatedTarget} from "../interfaces/ITravelRuleGate.sol";
+import {IPolicyVerifier, IMembershipVerifier, IAdmittedRootProvider, IGatedTarget} from "../interfaces/ITravelRuleGate.sol";
 
-/// Test-only. Returns a configurable result and records the last call.
-contract MockGroth16Verifier is IGroth16Verifier {
+/// Test-only. Same ABI as the snarkjs-generated verifiers, configurable result.
+contract MockPolicyVerifier is IPolicyVerifier {
     bool public result = true;
 
     function setResult(bool r) external {
         result = r;
     }
 
-    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[] calldata)
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[3] calldata)
+        external
+        view
+        returns (bool)
+    {
+        return result;
+    }
+}
+
+contract MockMembershipVerifier is IMembershipVerifier {
+    bool public result = true;
+
+    function setResult(bool r) external {
+        result = r;
+    }
+
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[4] calldata)
         external
         view
         returns (bool)
