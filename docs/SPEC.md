@@ -52,4 +52,4 @@ Example consumer: `contracts/examples/PassportGatedSettlement.sol` moves AVAX on
 
 ## Next interfaces (later phases)
 
-`Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern). First version: `contracts/DPO2UTravelRuleGate.sol`, see `docs/TRAVEL-RULE-GATE.md`.
+`Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `MidnightRelay` (Midnight seals on the C-Chain, k-of-n relayers; see [MIDNIGHT-RELAY.md](MIDNIGHT-RELAY.md)), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern). First version: `contracts/DPO2UTravelRuleGate.sol`, see `docs/TRAVEL-RULE-GATE.md`.
