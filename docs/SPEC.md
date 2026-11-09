@@ -37,6 +37,18 @@ An attestation is keyed by `(useCaseId, evidenceHash)` and is written once.
 - `isValid(useCaseId, evidenceHash)`: PASS, not revoked, not expired.
 - `isSubjectCompliant(useCaseId, subject)`: the subject's latest attestation is valid. A newer FAIL overrides an older PASS.
 
+## Passport oracle (`DPO2UPassportOracle`)
+
+EVM mirror of the control-plane Passport (PSAV spec §3.4). Per `(subject, packId)` there is one current passport: `passportId`, `packHash`, `tier`, `status`, `issuedAt`, `expiresAt`, `issuer` and the seal it rests on (`sealUseCaseId`, `sealEvidenceHash`).
+
+- Tier order matches control-plane `TIER_RANK`: `NONE < TIER1_MACHINE_ONLY < TIER1 < TIER2 < TIER3`. `NONE` means no passport and is refused as `minTier`.
+- `issuePassport` (authorized issuers only) requires a seal that exists in the registry, is not revoked, is not FAIL, has not expired, and has the same `subject` and `packHash` as the passport (`SealMismatch` otherwise). A REVIEW seal backs only a `TIER1_MACHINE_ONLY` passport. Validity is capped by `maxValidity` and, for tier2/tier3, also by 31 days (control-plane `TIER_WINDOW_DAYS`). Each `passportId` is usable once. A new passport replaces the current one for that pack.
+- `suspendPassport` / `revokePassport` (admin or the issuing issuer) take effect in the same block and cannot be undone. The way back is a new passport with a new seal.
+- Read: `isValid(subject, packId, minTier)`, `isAccountValid(address, packId, minTier)`, `isValidAll(subject, packIds[], minTier)` and `subjectOf(address)` = keccak256 of the lowercase CAIP-10 (`eip155:<chainId>:0x…`), the same subject the gateway writes.
+- Silence = non-compliance: an expired, suspended, revoked or missing passport is simply not valid.
+
+Example consumer: `contracts/examples/PassportGatedSettlement.sol` moves AVAX only when payer and payee both hold a valid passport for the pinned pack and tier.
+
 ## Next interfaces (later phases)
 
-`Passport` (tier, sponsorship, status), `Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern). First version: `contracts/DPO2UTravelRuleGate.sol`, see `docs/TRAVEL-RULE-GATE.md`.
+`Solvency` (reserves ≥ liabilities proof), `LegalSource` (citation → statute hash), `TravelRuleGate` (transfer allowed only with an attested IVMS-101 payload hash and valid passports on both ends; port of the Soroban `defindex-rebalance-gate` pattern). First version: `contracts/DPO2UTravelRuleGate.sol`, see `docs/TRAVEL-RULE-GATE.md`.

@@ -12,6 +12,9 @@ import {IDPO2UAttestation} from "./interfaces/IDPO2UAttestation.sol";
 ///      the SP1 verifier address and the program vkey are immutable. No entrypoint
 ///      accepts a caller-supplied verifier or vkey. The evidence hash is derived
 ///      on-chain as sha256(publicValues), so a proof can be sealed only once.
+///      Submission is permissionless, so nothing caller-chosen is written: the metadata
+///      hash is derived from the program vkey and the public values (no front-running
+///      a proof with arbitrary metadata).
 ///      Public values ABI: (uint32 threshold, bytes32 subjectCommitment, bool meetsThreshold).
 contract DPO2UZkThresholdAttestor {
     error BelowMinimumThreshold();
@@ -53,7 +56,7 @@ contract DPO2UZkThresholdAttestor {
     }
 
     /// @notice Permissionless: anyone holding a valid proof can seal it.
-    function submitProof(bytes calldata publicValues, bytes calldata proofBytes, bytes32 metadataHash)
+    function submitProof(bytes calldata publicValues, bytes calldata proofBytes)
         external
         returns (bytes32 evidenceHash)
     {
@@ -65,6 +68,7 @@ contract DPO2UZkThresholdAttestor {
         if (threshold < minThreshold) revert BelowMinimumThreshold();
 
         evidenceHash = sha256(publicValues);
+        bytes32 metadataHash = keccak256(abi.encode(programVKey, evidenceHash));
         registry.registerAttestation(
             useCaseId,
             evidenceHash,
