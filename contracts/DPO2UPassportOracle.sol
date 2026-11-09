@@ -16,6 +16,9 @@ import {IDPO2UAttestation} from "./interfaces/IDPO2UAttestation.sol";
 ///        revoked and is not FAIL. The seal reference is stored, so anyone can audit it.
 ///      - Suspended and revoked are not valid; neither can be undone. A new passport (new
 ///        id, new seal) is the only way back, and the history stays in the events.
+///      - The seal must be about the same subject and the same pack hash as the passport.
+///      - A REVIEW seal can back only a tier1-machine-only passport; higher tiers need PASS.
+///      - Validity is capped by `maxValidity`, and tier2/tier3 also by 31 days.
 ///      - A passport id is used once (anti-replay).
 ///      - Tier order matches the control plane: tier1-machine-only < tier1 < tier2 < tier3.
 ///        `minTier` NONE is refused, so a caller cannot ask "any passport, even none".
@@ -31,6 +34,7 @@ contract DPO2UPassportOracle {
     error PassportNotValid();
     error SealNotFound();
     error SealNotUsable();
+    error SealMismatch();
     error ZeroValue();
 
     /// Rank order mirrors control-plane TIER_RANK (+1, NONE = 0 = no passport).
@@ -64,6 +68,8 @@ contract DPO2UPassportOracle {
     IDPO2UAttestation public immutable registry;
     /// Upper bound on validity (control plane: 365 days for tier1, 31 for tier2/3).
     uint64 public immutable maxValidity;
+    /// Control-plane TIER_WINDOW_DAYS for tier2 and tier3.
+    uint64 public constant HIGH_TIER_MAX_VALIDITY = 31 days;
 
     address public admin;
     address public pendingAdmin;
@@ -141,9 +147,11 @@ contract DPO2UPassportOracle {
         }
         if (tier == Tier.NONE) revert InvalidTier();
         if (expiresAt <= block.timestamp) revert InvalidExpiry();
-        if (expiresAt - block.timestamp > maxValidity) revert ValidityTooLong();
+        uint256 cap = maxValidity;
+        if (uint8(tier) >= uint8(Tier.TIER2) && cap > HIGH_TIER_MAX_VALIDITY) cap = HIGH_TIER_MAX_VALIDITY;
+        if (expiresAt - block.timestamp > cap) revert ValidityTooLong();
         if (_usedPassportIds[passportId]) revert PassportIdUsed();
-        _requireUsableSeal(sealUseCaseId, sealEvidenceHash);
+        _requireUsableSeal(sealUseCaseId, sealEvidenceHash, subject, packHash, tier);
 
         _usedPassportIds[passportId] = true;
         _passports[subject][packId] = Passport({
@@ -223,7 +231,10 @@ contract DPO2UPassportOracle {
         if (msg.sender != admin && msg.sender != p.issuer) revert NotAuthorized();
     }
 
-    function _requireUsableSeal(bytes32 useCaseId, bytes32 evidenceHash) private view {
+    function _requireUsableSeal(bytes32 useCaseId, bytes32 evidenceHash, bytes32 subject, bytes32 packHash, Tier tier)
+        private
+        view
+    {
         IDPO2UAttestation.Attestation memory a;
         try registry.getAttestation(useCaseId, evidenceHash) returns (IDPO2UAttestation.Attestation memory got) {
             a = got;
@@ -233,6 +244,8 @@ contract DPO2UPassportOracle {
         if (a.revoked || a.verdict == IDPO2UAttestation.Verdict.FAIL || block.timestamp >= a.expiresAt) {
             revert SealNotUsable();
         }
+        if (a.verdict == IDPO2UAttestation.Verdict.REVIEW && tier != Tier.TIER1_MACHINE_ONLY) revert SealNotUsable();
+        if (a.subject != subject || a.packHash != packHash) revert SealMismatch();
     }
 
     function _toDecimal(uint256 v) private pure returns (bytes memory out) {

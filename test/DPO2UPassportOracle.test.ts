@@ -42,7 +42,7 @@ describe("DPO2UPassportOracle", () => {
   it("issues on top of a sealed run and answers by tier", async () => {
     const { reg, oracle, gateway, issuer } = await deploy();
     const ev = await seal(reg, gateway, "run-1");
-    await expect(issue(oracle, issuer, { ev, tier: T.TIER2 })).to.emit(oracle, "PassportIssued");
+    await expect(issue(oracle, issuer, { ev, tier: T.TIER2, days: 31 })).to.emit(oracle, "PassportIssued");
     expect(await oracle.isValid(SUBJECT, PACK_ID, T.TIER1_MACHINE_ONLY)).to.equal(true);
     expect(await oracle.isValid(SUBJECT, PACK_ID, T.TIER2)).to.equal(true);
     expect(await oracle.isValid(SUBJECT, PACK_ID, T.TIER3)).to.equal(false);
@@ -73,7 +73,27 @@ describe("DPO2UPassportOracle", () => {
     await time.increase(2 * DAY);
     await expect(issue(oracle, issuer, { ev: old, pid: "pp-o" })).to.be.revertedWithCustomError(oracle, "SealNotUsable");
     const review = await seal(reg, gateway, "run-review", REVIEW);
+    await expect(issue(oracle, issuer, { ev: review, pid: "pp-v1", tier: T.TIER1 })).to.be.revertedWithCustomError(oracle, "SealNotUsable");
+    await expect(issue(oracle, issuer, { ev: review, pid: "pp-v3", tier: T.TIER3, days: 30 })).to.be.revertedWithCustomError(oracle, "SealNotUsable");
     await expect(issue(oracle, issuer, { ev: review, pid: "pp-v", tier: T.TIER1_MACHINE_ONLY })).to.emit(oracle, "PassportIssued");
+  });
+
+  it("binds the passport to the seal's subject and pack hash", async () => {
+    const { reg, oracle, gateway, issuer } = await deploy();
+    const ev = await seal(reg, gateway, "run-1");
+    await expect(issue(oracle, issuer, { ev, subject: id("someone-else") })).to.be.revertedWithCustomError(oracle, "SealMismatch");
+    await expect(
+      oracle.connect(issuer).issuePassport(SUBJECT, PACK_ID, id("other-pack"), T.TIER1, await exp(30), id("pp-p"), UC, ev),
+    ).to.be.revertedWithCustomError(oracle, "SealMismatch");
+    await expect(issue(oracle, issuer, { ev })).to.emit(oracle, "PassportIssued");
+  });
+
+  it("tier2/tier3 are capped at 31 days even when maxValidity is longer", async () => {
+    const { reg, oracle, gateway, issuer } = await deploy();
+    const ev = await seal(reg, gateway, "run-1");
+    await expect(issue(oracle, issuer, { ev, tier: T.TIER2, days: 60 })).to.be.revertedWithCustomError(oracle, "ValidityTooLong");
+    await expect(issue(oracle, issuer, { ev, tier: T.TIER3, days: 32 })).to.be.revertedWithCustomError(oracle, "ValidityTooLong");
+    await expect(issue(oracle, issuer, { ev, tier: T.TIER1, days: 365 })).to.emit(oracle, "PassportIssued");
   });
 
   it("suspension takes effect at once and is not undone; revocation stays terminal", async () => {

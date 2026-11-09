@@ -17,7 +17,7 @@ What is here (phase 0 and the core of phase 1):
 
 ```bash
 npm install
-npm test          # 39 tests, including the real SP1 proof
+npm test          # 41 tests, including the real SP1 proof
 npm run gas
 ```
 
