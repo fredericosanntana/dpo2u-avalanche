@@ -139,4 +139,24 @@ describe("midnight-relayer (off-chain loop) against the relay", () => {
     expect(await reg.isValid(UC, s.evidenceHash)).to.equal(true);
     expect((await relayOnce({ source, relayAddress: addr, signer: r2 })).results[0].outcome).to.equal("skipped:relayed");
   });
+
+  it("does not advance the cursor past a failed seal, so it is retried on the next pass", async () => {
+    const { relayOnce } = await import("../src/midnight-relayer");
+    const [admin, r1, outsider] = await ethers.getSigners();
+    const reg = await (await ethers.getContractFactory("DPO2UComplianceRegistry")).deploy(admin.address, 365 * DAY);
+    await reg.configureUseCase(UC, true, id("pack"), 1);
+    const relay = await (await ethers.getContractFactory("DPO2UMidnightRelay")).deploy(admin.address, await reg.getAddress(), 1);
+    await reg.authorizeSubmitter(await relay.getAddress(), true);
+    await relay.setRelayer(r1.address, true);
+    await relay.setRoute(MID_UC, UC, 90 * DAY);
+    const source = { sealsSince: async () => ({ seals: [seal() as any], cursor: "c1" }) };
+    const addr = await relay.getAddress();
+
+    const failed = await relayOnce({ source, relayAddress: addr, signer: outsider, cursor: "c0" });
+    expect(failed.results[0].outcome).to.equal("failed");
+    expect(failed.cursor).to.equal("c0");
+    const ok = await relayOnce({ source, relayAddress: addr, signer: r1, cursor: failed.cursor });
+    expect(ok.results[0].outcome).to.equal("registered");
+    expect(ok.cursor).to.equal("c1");
+  });
 });

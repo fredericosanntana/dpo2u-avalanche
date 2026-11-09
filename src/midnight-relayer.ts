@@ -34,6 +34,7 @@ export const MIDNIGHT_RELAY_ABI = [
 export type RelayOutcome = "confirmed" | "registered" | "skipped:relayed" | "skipped:confirmed" | "skipped:unmapped" | "failed";
 
 export interface RelayReport {
+  /** Cursor to persist: the source's new cursor, or the input cursor when any seal failed. */
   cursor: string | undefined;
   results: { evidenceHash: string; outcome: RelayOutcome; txHash?: string; error?: string }[];
 }
@@ -73,5 +74,8 @@ export async function relayOnce(args: {
       results.push({ evidenceHash: s.evidenceHash, outcome: "failed", error: err instanceof Error ? err.message : String(err) });
     }
   }
-  return { cursor, results };
+  // A failed seal (RPC error, reverted tx) must be retried: never advance past it. Re-reading the
+  // same window is safe because every other outcome above is idempotent.
+  const anyFailed = results.some((r) => r.outcome === "failed");
+  return { cursor: anyFailed ? args.cursor : cursor, results };
 }
