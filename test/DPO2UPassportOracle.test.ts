@@ -13,13 +13,24 @@ const PACK_ID = id("psav-partner-br@1.0.0");
 const PACK_HASH = "0x5098e1806e2a918da1aa7f1db39c0b4e41e022d2d7bad6abcdc511b6ddddab86";
 const SUBJECT = id("eip155:43113:0x000000000000000000000000000000000000dead");
 
-describe("DPO2UPassportOracle", () => {
+// The same suite runs against v1 (direct) and v2 (behind an ERC-1967 UUPS proxy).
+async function deployOracle(mode: string, admin: string, registry: string, maxValidity: number): Promise<any> {
+  if (mode === "v1") return (await ethers.getContractFactory("DPO2UPassportOracle")).deploy(admin, registry, maxValidity);
+  const impl = await (await ethers.getContractFactory("DPO2UPassportOracleV2")).deploy();
+  const init = impl.interface.encodeFunctionData("initialize", [admin, registry, maxValidity]);
+  const proxy = await (await ethers.getContractFactory("ERC1967Proxy")).deploy(await impl.getAddress(), init);
+  return ethers.getContractAt("DPO2UPassportOracleV2", await proxy.getAddress());
+}
+
+for (const MODE of ["v1", "v2-proxy"]) {
+
+describe(`DPO2UPassportOracle [${MODE}]`, () => {
   async function deploy() {
     const [admin, gateway, issuer, other, alice, bob] = await ethers.getSigners();
     const reg = await (await ethers.getContractFactory("DPO2UComplianceRegistry")).deploy(admin.address, 365 * DAY);
     await reg.configureUseCase(UC, true, PACK_HASH, 10000);
     await reg.authorizeSubmitter(gateway.address, true);
-    const oracle = await (await ethers.getContractFactory("DPO2UPassportOracle")).deploy(admin.address, await reg.getAddress(), 366 * DAY);
+    const oracle = await deployOracle(MODE, admin.address, await reg.getAddress(), 366 * DAY);
     await oracle.authorizeIssuer(issuer.address, true);
     return { reg, oracle, admin, gateway, issuer, other, alice, bob };
   }
@@ -167,13 +178,13 @@ describe("DPO2UPassportOracle", () => {
   });
 });
 
-describe("PassportGatedSettlement (example consumer)", () => {
+describe(`PassportGatedSettlement (example consumer) [${MODE}]`, () => {
   it("settles only when both sides hold a valid passport, and refuses after suspension or expiry", async () => {
     const [admin, gateway, issuer, alice, bob, carol] = await ethers.getSigners();
     const reg = await (await ethers.getContractFactory("DPO2UComplianceRegistry")).deploy(admin.address, 365 * DAY);
     await reg.configureUseCase(UC, true, PACK_HASH, 10000);
     await reg.authorizeSubmitter(gateway.address, true);
-    const oracle = await (await ethers.getContractFactory("DPO2UPassportOracle")).deploy(admin.address, await reg.getAddress(), 366 * DAY);
+    const oracle = await deployOracle(MODE, admin.address, await reg.getAddress(), 366 * DAY);
     await oracle.authorizeIssuer(issuer.address, true);
     const desk = await (await ethers.getContractFactory("PassportGatedSettlement")).deploy(await oracle.getAddress(), PACK_ID, T.TIER1);
 
@@ -198,3 +209,4 @@ describe("PassportGatedSettlement (example consumer)", () => {
     await expect(desk.connect(alice).settle(bob.address, { value: one })).to.be.revertedWithCustomError(desk, "PayeeNotCompliant");
   });
 });
+}
