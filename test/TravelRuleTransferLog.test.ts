@@ -4,7 +4,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const DAY = 86_400;
 const id = (s: string) => ethers.keccak256(ethers.toUtf8Bytes(s));
-const UC = id("travel_rule_ivms101_v1");
+const UC = id("travel_rule_v1");
 
 describe("TravelRuleTransferLog (example gate target) — attestation lane end to end", () => {
   it("logs only gate executions backed by a sealed PASS; binds once; refuses direct calls", async () => {

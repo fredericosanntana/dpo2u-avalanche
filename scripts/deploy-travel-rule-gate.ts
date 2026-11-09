@@ -3,7 +3,7 @@
 // reverts VerifierNotSet until real verifiers exist; a mock is never deployed).
 //   npx hardhat run scripts/deploy-travel-rule-gate.ts --network fuji
 // Writes travelRuleGate { gate, target, useCase, ... } to deployments/<network>.json.
-// Env: PRIVATE_KEY (deployer = gate admin), TRG_USE_CASE (default travel_rule_ivms101_v1; must be
+// Env: PRIVATE_KEY (deployer = gate admin), TRG_USE_CASE (default travel_rule_v1, the gateway set id; must be
 //      configured and active in the registry by its admin before `execute` can pass),
 //      TRG_PARTY_USE_CASE (optional: require both parties compliant under this use case),
 //      TRG_OPERATOR (optional operator to authorize), ADMIN_ADDRESS (optional two-step transfer).
@@ -18,7 +18,7 @@ async function main() {
   const file = path.join(__dirname, "..", "deployments", `${network.name}.json`);
   const dep = JSON.parse(fs.readFileSync(file, "utf8"));
   if (!dep.registry) throw new Error(`no registry in ${file}`);
-  const useCase = process.env.TRG_USE_CASE || "travel_rule_ivms101_v1";
+  const useCase = process.env.TRG_USE_CASE || "travel_rule_v1";
   const partyUseCase = process.env.TRG_PARTY_USE_CASE || "";
   console.log(`network=${network.name} deployer=${deployer.address} registry=${dep.registry} useCase=${useCase} partyUseCase=${partyUseCase || "(off)"}`);
 
