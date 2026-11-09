@@ -25,6 +25,7 @@ contract DPO2UComplianceRegistry is IDPO2UAttestation {
     error InvalidExpiry();
     error ValidityTooLong();
     error AlreadyRevoked();
+    error ZeroEvidenceHash();
 
     /// Upper bound on validity so a seal cannot be made effectively permanent.
     uint64 public immutable maxValidity;
@@ -97,6 +98,7 @@ contract DPO2UComplianceRegistry is IDPO2UAttestation {
         if (!_submitters[msg.sender]) revert NotAuthorized();
         UseCase memory uc = _useCases[useCaseId];
         if (!uc.active) revert UseCaseInactive();
+        if (evidenceHash == bytes32(0)) revert ZeroEvidenceHash(); // 0 is the "no record" sentinel
         if (verdict == Verdict.NONE) revert InvalidVerdict();
         if (expiresAt <= block.timestamp) revert InvalidExpiry();
         if (expiresAt - block.timestamp > maxValidity) revert ValidityTooLong();

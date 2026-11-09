@@ -8,7 +8,8 @@
     "test": "hardhat test",
     "gas": "hardhat run scripts/gas.ts",
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
-    "deploy:local": "hardhat run scripts/deploy.ts"
+    "deploy:local": "hardhat run scripts/deploy.ts",
+    "deploy:passport:fuji": "hardhat run scripts/deploy-passport.ts --network fuji"
   },
   "keywords": [],
   "author": "",
