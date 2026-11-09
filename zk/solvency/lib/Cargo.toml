@@ -1,0 +1,15 @@
+[package]
+name = "dpo2u-solvency-lib"
+version = "0.1.0"
+edition = "2021"
+description = "DPO2U proof of reserves: snapshot types, feed signature checks and public values (shared by the zkVM program and the host script)"
+
+[dependencies]
+alloy-sol-types = { workspace = true }
+ed25519-dalek = { workspace = true }
+sha2 = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+rand = "0.8"
