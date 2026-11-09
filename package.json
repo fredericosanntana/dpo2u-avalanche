@@ -10,7 +10,8 @@
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
     "deploy:local": "hardhat run scripts/deploy.ts",
     "deploy:passport:fuji": "hardhat run scripts/deploy-passport.ts --network fuji",
-    "deploy:passport-v2:fuji": "hardhat run scripts/deploy-passport-v2.ts --network fuji"
+    "deploy:passport-v2:fuji": "hardhat run scripts/deploy-passport-v2.ts --network fuji",
+    "deploy:travel-rule-gate:fuji": "hardhat run scripts/deploy-travel-rule-gate.ts --network fuji"
   },
   "keywords": [],
   "author": "",
