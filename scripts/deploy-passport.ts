@@ -18,7 +18,15 @@ async function main() {
 
   const oracle = await (await ethers.getContractFactory("DPO2UPassportOracle")).deploy(deployer.address, dep.registry, days * 86_400);
   await oracle.waitForDeployment();
-  if (process.env.PASSPORT_ISSUER) await (await oracle.authorizeIssuer(process.env.PASSPORT_ISSUER, true)).wait();
+  // Issuer metadata belongs to the oracle it was written for: a redeploy clears it.
+  delete dep.passportIssuer;
+  delete dep.passportIssuerAuthTx;
+  if (process.env.PASSPORT_ISSUER) {
+    const tx = await oracle.authorizeIssuer(process.env.PASSPORT_ISSUER, true);
+    await tx.wait();
+    dep.passportIssuer = process.env.PASSPORT_ISSUER;
+    dep.passportIssuerAuthTx = tx.hash;
+  }
   if (process.env.ADMIN_ADDRESS) await (await oracle.transferAdmin(process.env.ADMIN_ADDRESS)).wait();
 
   dep.passportOracle = await oracle.getAddress();
