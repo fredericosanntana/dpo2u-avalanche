@@ -1,5 +1,7 @@
 # DPO2U Attestation Interface — spec v0.1 (chain-neutral)
 
+English · [Português](SPEC.pt-BR.md)
+
 Status: draft, written in phase 0 of the Avalanche plan. Avalanche (`contracts/interfaces/IDPO2UAttestation.sol`) is the first full implementation. Stellar (`anticorruption-attestation`) and Midnight (`ComplianceRegistry.compact`) already use the same core model and can be aligned to this spec later.
 
 ## Data model

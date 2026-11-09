@@ -1,5 +1,7 @@
 # DPO2U on Avalanche
 
+English · [Português](README.pt-BR.md)
+
 Compliance-as-code seal for institutions, banks and VASPs on Avalanche C-Chain (Fuji testnet first). Part of the DPO2U stack already running on Midnight, Solana and Stellar.
 
 What is here (phase 0 and the core of phase 1):
