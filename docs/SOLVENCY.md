@@ -11,12 +11,12 @@ Only the verdict and commitments. Reserves and liabilities never leave the prove
 |---|---|---|
 | `entityId` | bytes32 | H(CNPJ or DID of the VASP). Also the registry `subject`. |
 | `reportCommitment` | bytes32 | Hash/CID of the off-chain reserve report |
-| `context` | bytes32 | H(entity ‖ period ‖ nonce). Single use (anti-replay). |
+| `context` | bytes32 | H(entity ‖ snapshotAt ‖ nonce). Single use (anti-replay). |
 | `sourcesHash` | bytes32 | H(signing keys of the reserve and liability feeds) |
-| `period` | uint32 | Reporting period, YYYYMMDD. Must move forward per entity. |
+| `snapshotAt` | uint64 | Unix time of the signed snapshot. Must move forward per entity. |
 | `solvent` | bool | Must be `true` to seal |
 
-ABI: `abi.encode(bytes32,bytes32,bytes32,bytes32,uint32,bool)`, 192 bytes.
+ABI: `abi.encode(bytes32,bytes32,bytes32,bytes32,uint64,bool)`, 192 bytes.
 
 ## Rules
 
@@ -24,23 +24,28 @@ ABI: `abi.encode(bytes32,bytes32,bytes32,bytes32,uint32,bool)`, 192 bytes.
 - **Permissionless, nothing caller-chosen**: evidence hash = `sha256(publicValues)`,
   metadata hash = `keccak256(vkey, evidenceHash)`.
 - **Registry-backed**: each seal is a MACHINE PASS in `DPO2UComplianceRegistry`
-  (subject = `entityId`). Expiry (`validity`, about 1–2 days for a daily regime),
-  revocation and use-case deactivation all flow through the registry, so `isSolvent`
-  turns false on silence.
-- **No stale snapshots**: `period` must be strictly greater than the entity's last one.
+  (subject = `entityId`). Expiry, revocation and use-case deactivation all switch
+  `isSolvent` off, so silence counts as non-compliance.
+- **Freshness**: `snapshotAt` may not be in the future nor older than `maxSnapshotAge`
+  at submission, and the seal expires at `snapshotAt + validity` (not at submission time),
+  so an old snapshot can never be presented as current. Deploy rejects
+  `maxSnapshotAge >= validity`. For a daily regime: `validity` about 2 days, `maxSnapshotAge` 1 day.
+- **Forward only**: `snapshotAt` must be strictly greater than the entity's last one.
+- The Midnight contract uses a YYYYMMDD `period`; here the snapshot time is used instead
+  because freshness has to be checked on-chain.
 
 ## What the SP1 program must do (not in this PR)
 
 The contract trusts the program pinned by `programVKey`. The program must:
 
 1. verify the signatures of the reserve feed (custodian/wallet attestations) and the
-   liability feed (client ledger) over a snapshot that includes `period`;
+   liability feed (client ledger) over a snapshot that includes `snapshotAt`;
 2. commit `sourcesHash` = hash of exactly those signing keys;
 3. assert `reserves >= liabilities` and commit `solvent = true` only then;
-4. derive `context` from entity, period and a nonce, and `reportCommitment` from the report.
+4. derive `context` from entity, snapshotAt and a nonce, and `reportCommitment` from the report.
 
-Binding `period` to the signed snapshot matters: since periods only move forward, a
-proof with a far-future period would block later seals for that entity.
+`snapshotAt` must come from the signed snapshot, not from the prover, or the freshness rule
+means nothing.
 
 Tests use `contracts/test/MockSP1Verifier.sol` (test only). A real proof needs the SP1
 program built and its vkey pinned at deploy.
