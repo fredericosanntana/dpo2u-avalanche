@@ -11,7 +11,7 @@ Selo de compliance-as-code para instituições, bancos e PSAVs na Avalanche C-Ch
 | Especificação da interface | `contracts/interfaces/IDPO2UAttestation.sol`, `docs/SPEC.pt-BR.md` | modelo de atestação neutro de rede: PASS/FAIL/REVIEW, origem do veredito, hash do pack e validade obrigatória |
 | Registry | `contracts/DPO2UComplianceRegistry.sol` | o selo. Use cases, submitters autorizados, revogação e o oráculo `isValid` / `isSubjectCompliant` |
 | Atestador ZK | `contracts/DPO2UZkThresholdAttestor.sol` | verifica a prova SP1 v6.1.0 Groth16 da DPO2U de `score ≥ threshold` (a mesma prova verificada no Solana) e sela um PASS de origem MACHINE. O score nunca vai para a chain |
-| Oráculo de passaporte | `contracts/DPO2UPassportOracle.sol` | passaporte de conformidade PSAV por sujeito e pack (tier, status, validade obrigatória), emitido só em cima de um selo válido do registry. Qualquer contrato pergunta `isValid` / `isAccountValid` antes de negociar com uma contraparte. Exemplo: `contracts/examples/PassportGatedSettlement.sol` |
+| Oráculo de passaporte | `contracts/DPO2UPassportOracle.sol` | passaporte de conformidade PSAV por sujeito e pack (tier, status, validade obrigatória), emitido só em cima de um selo utilizável do registry (PASS, ou REVIEW para tier1-machine-only). Qualquer contrato pergunta `isValid` / `isAccountValid` antes de negociar com uma contraparte. Exemplo: `contracts/examples/PassportGatedSettlement.sol` |
 | Verificador SP1 | `contracts/vendor/sp1/` | cópia sem modificação de [succinctlabs/sp1-contracts](https://github.com/succinctlabs/sp1-contracts), tag `v6.1.0` (MIT) |
 | SDK | `src/` | `AvalancheChainAnchor`, no mesmo formato do `ChainAnchorPort` do control plane da DPO2U; redes Avalanche em CAIP-2 |
 

@@ -45,7 +45,7 @@ Espelho EVM do Passport do control plane (spec PSAV §3.4). Para cada `(subject,
 
 - A ordem dos tiers segue o `TIER_RANK` do control plane: `NONE < TIER1_MACHINE_ONLY < TIER1 < TIER2 < TIER3`. `NONE` significa "sem passaporte" e é recusado como `minTier`.
 - `issuePassport` (só emissores autorizados) exige um selo que exista no registry, não esteja revogado, não seja FAIL, não tenha expirado e tenha o mesmo `subject` e `packHash` do passaporte (senão, `SealMismatch`). Um selo REVIEW só sustenta passaporte `TIER1_MACHINE_ONLY`. A validade é limitada por `maxValidity` e, para tier2 e tier3, também por 31 dias (`TIER_WINDOW_DAYS` do control plane). Cada `passportId` é usado uma vez só. Um passaporte novo substitui o atual daquele pack.
-- `suspendPassport` / `revokePassport` (admin ou o emissor que emitiu) valem no mesmo bloco e não têm volta. O caminho de volta é um passaporte novo, com um selo novo.
+- `suspendPassport` / `revokePassport` (admin ou o emissor que emitiu) valem no mesmo bloco e não têm volta. O caminho de volta é emitir um passaporte novo (`passportId` novo), apoiado num selo que continue utilizável.
 - Leitura: `isValid(subject, packId, minTier)`, `isAccountValid(address, packId, minTier)`, `isValidAll(subject, packIds[], minTier)` e `subjectOf(address)` = keccak256 do CAIP-10 em minúsculas (`eip155:<chainId>:0x…`), o mesmo subject que o gateway grava.
 - Silêncio = não conformidade: um passaporte expirado, suspenso, revogado ou inexistente simplesmente não é válido.
 
