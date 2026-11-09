@@ -95,5 +95,36 @@
       },
       "indexer": "public preview indexer (PROVISIONAL bridge until relayer #1's own node+indexer are synced)"
     }
+  },
+  "solvencyRegistry": {
+    "address": "0x92d194d2766394F917Aca20c6b8881De1F5db97b",
+    "deployTx": "0xd4b4c10c291908e2fef6d68b09e0a0e386c4a19bc50cf040a8312a5e6e540af7",
+    "deployedAt": "2026-11-09T17:08:59.885Z",
+    "programVKey": "0x00688f3b093722e0c3d322ba5aa5f20f623887215810ee64e2d503d944ac7987",
+    "useCase": "solvency_por_br_v1",
+    "useCaseId": "0xe667b5bbbbb4bd5b612d41f14c1d5f6e1b1dc16b801974c09d975505ad099dd7",
+    "packHash": "0xc14292d8638c5550f2140f6c45cc46b2b1e6f88e174ce46e7eb142df6e9e8633",
+    "packVersion": 10000,
+    "validitySeconds": 172800,
+    "maxSnapshotAgeSeconds": 86400,
+    "configureUseCaseTx": "0x67195df999884502ffa2e8d6b920a37da556af9e95baeb519bcf7fb7584ad84e",
+    "authorizeSubmitterTx": "0xfc3d91738df58a02f3f02e891eaeba6758b5ffac728e0d3eadb12509a6bcbc8b",
+    "firstSeal": {
+      "tx": "0x0663f0c23fc7a2435d54fcd1f892ad5be62933bc428ab53ae9ef8548f59593a2",
+      "label": "TEST data: entity sha256('TEST/dpo2u-por/fuji-smoke-entity'), feeds signed by throwaway ed25519 keys",
+      "entityId": "0x45bdef2775f0eddeeba835e75d862fcb88f877a37e3ab5d07f93d9c6d0e82a58",
+      "snapshotAt": 1794247014,
+      "evidenceHash": "0xb1a6cae59ac275d8f9268588d9e9d52bdc0225eb140a1499c5d105ec2c89153c",
+      "gasUsed": 588765,
+      "isSolvent": true,
+      "prover": {
+        "machine": "VPS srv538623 (8 vCPU)",
+        "sp1": "6.1.0",
+        "seconds": 1210,
+        "ramPeakMiB": 18432,
+        "swapPeakMiB": 10808,
+        "cgroup": "MemoryMax=18G MemorySwapMax=16G, dedicated swapfile removed after"
+      }
+    }
   }
 }
