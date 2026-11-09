@@ -25,5 +25,8 @@
       "packVersion": 10100,
       "configureTx": "0x585e777e5df4bc154710360f10d59be7e5170916995bc5fa2dd63bccbda9ac7b"
     }
-  ]
+  ],
+  "passportOracle": "0x27bb394d3fFdD7DDc5bb67F8C8Ee64073BeDF2b2",
+  "passportOracleDeployedAt": "2026-11-09T15:18:10.210Z",
+  "passportOracleDeployTx": "0x5db39aa6134bf101af3a515d85c2ec94133d12d6115c0740a2fc38fda9ce31a4"
 }
