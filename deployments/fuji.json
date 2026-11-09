@@ -134,9 +134,35 @@
     "deployedAt": "2026-11-09T20:14:00.704Z",
     "issuer": "0xA6203d148a66Bf1fd39eC0Ea48d65F7945B67d4F",
     "issuerAuthTx": "0x67103641e2421934c982e168db75179925b937cf056de8ae0cc3bbc653723579",
-    "admin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
-    "adminNote": "deploy wallet until the 2-of-3 Safe exists; then transferAdmin(Safe) + acceptAdmin from the Safe",
+    "admin": "0xe99643149a7a4850Cad381deA97fdefC83b9773a",
     "maxValiditySeconds": 31536000,
-    "verified": "proxy and implementation on Snowtrace (Routescan)"
+    "verified": "proxy and implementation on Snowtrace (Routescan)",
+    "adminHandover": {
+      "transferAdminTx": "0x4352ee7b80283bd1f1fb7a51525b0b647d51742c2128362d896d53c406782f40",
+      "ownerApproveHashTx": "0x87c258c68dd80e0750987966654f08ade75dc8275c678a5550144c7e3d2422dff",
+      "safeTxHash": "0xe49da6670e5dc780dc9ad36471a29a5dbb7fb5eecb547fddc7627b38ac0a3e1d",
+      "acceptAdminExecTx": "0xfc86c419f1a98974ddb4ccbef653bcdad186c45d044dc920b543d2a4a8c43636",
+      "signers": "VPS key (ECDSA) + Frederico desktop wallet (approveHash)"
+    }
+  },
+  "adminSafe": {
+    "address": "0xe99643149a7a4850Cad381deA97fdefC83b9773a",
+    "version": "1.4.1 (SafeL2)",
+    "threshold": 2,
+    "owners": [
+      {
+        "address": "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67",
+        "holder": "Frederico, desktop wallet"
+      },
+      {
+        "address": "0x58F040aff111610C3dfd1FF121d3d071AE348d7c",
+        "holder": "Frederico, phone wallet"
+      },
+      {
+        "address": "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01",
+        "holder": "VPS key (600 file)"
+      }
+    ],
+    "createTx": "0x168ba605e98add784a185e3a60dbcef3fe8d1ad9bb257417fa386abb573ca135"
   }
 }
