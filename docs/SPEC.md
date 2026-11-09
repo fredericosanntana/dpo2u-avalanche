@@ -1,5 +1,7 @@
 # DPO2U Attestation Interface — spec v0.1 (chain-neutral)
 
+English · [Português](SPEC.pt-BR.md)
+
 Status: draft, written in phase 0 of the Avalanche plan. Avalanche (`contracts/interfaces/IDPO2UAttestation.sol`) is the first full implementation. Stellar (`anticorruption-attestation`) and Midnight (`ComplianceRegistry.compact`) already use the same core model and can be aligned to this spec later.
 
 ## Data model
@@ -43,7 +45,7 @@ EVM mirror of the control-plane Passport (PSAV spec §3.4). Per `(subject, packI
 
 - Tier order matches control-plane `TIER_RANK`: `NONE < TIER1_MACHINE_ONLY < TIER1 < TIER2 < TIER3`. `NONE` means no passport and is refused as `minTier`.
 - `issuePassport` (authorized issuers only) requires a seal that exists in the registry, is not revoked, is not FAIL, has not expired, and has the same `subject` and `packHash` as the passport (`SealMismatch` otherwise). A REVIEW seal backs only a `TIER1_MACHINE_ONLY` passport. Validity is capped by `maxValidity` and, for tier2/tier3, also by 31 days (control-plane `TIER_WINDOW_DAYS`). Each `passportId` is usable once. A new passport replaces the current one for that pack.
-- `suspendPassport` / `revokePassport` (admin or the issuing issuer) take effect in the same block and cannot be undone. The way back is a new passport with a new seal.
+- `suspendPassport` / `revokePassport` (admin or the issuing issuer) take effect in the same block and cannot be undone. The way back is a new passport (new `passportId`) backed by a seal that is still usable.
 - Read: `isValid(subject, packId, minTier)`, `isAccountValid(address, packId, minTier)`, `isValidAll(subject, packIds[], minTier)` and `subjectOf(address)` = keccak256 of the lowercase CAIP-10 (`eip155:<chainId>:0x…`), the same subject the gateway writes.
 - Silence = non-compliance: an expired, suspended, revoked or missing passport is simply not valid.
 
