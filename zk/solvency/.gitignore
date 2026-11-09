@@ -1,0 +1,4 @@
+target/
+*.bin
+!fixtures/*.bin
+fixtures/*.secret*
