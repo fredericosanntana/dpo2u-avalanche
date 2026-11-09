@@ -30,5 +30,48 @@
   "passportOracleDeployedAt": "2026-11-09T15:18:10.210Z",
   "passportOracleDeployTx": "0x5db39aa6134bf101af3a515d85c2ec94133d12d6115c0740a2fc38fda9ce31a4",
   "passportIssuer": "0xA6203d148a66Bf1fd39eC0Ea48d65F7945B67d4F",
-  "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2"
+  "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2",
+  "midnightRelay": {
+    "address": "0xeF52a2F26E0A5E558A87b34Bd98E910F3F64D845",
+    "admin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+    "threshold": 1,
+    "relayers": [
+      {
+        "address": "0x4B6fB8ABF85E48ad9Bb80E76949045e7b1C1FcB2",
+        "fundingTx": "0x139e9c6468ab87d8cda892a949009fd28152d7929b67b396ec439416a12731fc"
+      }
+    ],
+    "routes": [
+      {
+        "useCase": "psav_partner_br_v1",
+        "midnightUseCaseId": "0x707361765f706172746e65725f62725f76310000000000000000000000000000",
+        "useCaseId": "0xaf248c859b2ca2d9bea07268de5f05bc8b8b2731a0ac79627700aed2bf4cadc3",
+        "validitySeconds": 7776000,
+        "tx": "0xe117b4c1429ee3289cde0580bacc4375e39fa51ff69a0a6d6695412204f8c313"
+      }
+    ],
+    "txs": {
+      "deploy": "0x0b9d5c8c39c31edb0dc5fc17b164a744ee045f521f4651f27a6c3784778e7e65",
+      "setRelayer": "0x8e8d54ff0253330e3bd5da70ae33673ed295a661aae59b165a038ea0e7c2e946",
+      "authorizeSubmitter": "0xed9d3435d0a796a13520938efb08bb276065a4598287364535f744ab3bf8e1c3"
+    },
+    "note": "TESTNET, single relayer (1-of-1). Each operator adds its own key and Midnight node; threshold rises with them.",
+    "deployedAt": "2026-11-09T19:21:56.904Z",
+    "firstRelayedSeal": {
+      "label": "TEST seal (psav_partner_br_v1, verdict FAIL, evidence labelled test, no documents)",
+      "midnightContract": "817dc7481a314991c57c49ea354315bc3366cff213343faf93dc195ca422c135",
+      "midnightTx": "79f53b0beafe807780769ce8cb923f58f3843b8ec7bc7c5a53ca5398d0a63adf",
+      "midnightBlock": 39784,
+      "evidenceHash": "0x5283aa4dee855da90f68d3cf51015e7e29a6bc700a0577709425ca519484c1a2",
+      "fujiConfirmTx": "0x66f356b299fae0271be3e305f69b883bae0fe6e0d11a46042a6a75d4be2a1e4a",
+      "outcome": "registered",
+      "registryReadBack": {
+        "verdict": "FAIL",
+        "origin": "MACHINE",
+        "submitter": "relay",
+        "isValid": false
+      },
+      "indexer": "public preview indexer (PROVISIONAL bridge until relayer #1's own node+indexer are synced)"
+    }
+  }
 }
