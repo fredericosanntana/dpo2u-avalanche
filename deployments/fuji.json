@@ -28,5 +28,7 @@
   ],
   "passportOracle": "0x27bb394d3fFdD7DDc5bb67F8C8Ee64073BeDF2b2",
   "passportOracleDeployedAt": "2026-11-09T15:18:10.210Z",
-  "passportOracleDeployTx": "0x5db39aa6134bf101af3a515d85c2ec94133d12d6115c0740a2fc38fda9ce31a4"
+  "passportOracleDeployTx": "0x5db39aa6134bf101af3a515d85c2ec94133d12d6115c0740a2fc38fda9ce31a4",
+  "passportIssuer": "0xA6203d148a66Bf1fd39eC0Ea48d65F7945B67d4F",
+  "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2"
 }
