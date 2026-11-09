@@ -24,11 +24,33 @@
       "packHash": "0xda7e8b23363947d80dff87be55be565b74dcf991daf10060d7b0cf1eeb5ea713",
       "packVersion": 10100,
       "configureTx": "0x585e777e5df4bc154710360f10d59be7e5170916995bc5fa2dd63bccbda9ac7b"
+    },
+    {
+      "useCaseId": "travel_rule_v1",
+      "pack": "psav-travel-rule-br@1.0.0",
+      "packHash": "0xe0f11222a9f7953faa5fdd9521054ffee2ac51557d3b098cd8b87ee5f3d40405",
+      "packVersion": 10000,
+      "configureTx": "0xcce21100e27d214d1048bcb8145714b0e89c61d17cbb4d739a8ae1c0e93392b7",
+      "provisionalConfigureTx": "0xc13cab1ba3e52504d6beb086c3473ebbc749b0496cc84ad60fb12a4bfce65ab2"
     }
   ],
   "passportOracle": "0x27bb394d3fFdD7DDc5bb67F8C8Ee64073BeDF2b2",
   "passportOracleDeployedAt": "2026-11-09T15:18:10.210Z",
   "passportOracleDeployTx": "0x5db39aa6134bf101af3a515d85c2ec94133d12d6115c0740a2fc38fda9ce31a4",
   "passportIssuer": "0xA6203d148a66Bf1fd39eC0Ea48d65F7945B67d4F",
-  "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2"
+  "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2",
+  "travelRuleGate": {
+    "gate": "0xCB53038Bf6105F00F9FD48Fa22d0f77b6BE93834",
+    "gateDeployTx": "0x020e32d7e65dc62ce9012d48f2957b15884be0f14980b4c6482515f21ba2dc96",
+    "target": "0xC70b108404E5c60DA0De8D18e4534061c80F2F42",
+    "targetDeployTx": "0xc08a4136f6c44763a74afbd40ae421237f18cfebc3e45dc8392d46dc4b912e78",
+    "bindGateTx": "0x1ee4ad15bfd0acfe9cd20e5f1360d742f6e676c49211dd2f136adcef9e5f539c",
+    "useCase": "travel_rule_v1",
+    "useCaseId": "0x7afc1be6b77430b3b40c172a773d1d401c2b8b5d4009b2fd0f497f19786e7d6c",
+    "partyUseCase": null,
+    "lanes": "attestation only (no Groth16 verifiers)",
+    "deployedAt": "2026-11-09T16:44:08.860Z",
+    "operator": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+    "operatorAuthTx": "0x533517b2c4301694108132972f5b31bea8fe4d105b900dc0c6678a18313eeecd"
+  }
 }
