@@ -24,6 +24,14 @@
       "packHash": "0xda7e8b23363947d80dff87be55be565b74dcf991daf10060d7b0cf1eeb5ea713",
       "packVersion": 10100,
       "configureTx": "0x585e777e5df4bc154710360f10d59be7e5170916995bc5fa2dd63bccbda9ac7b"
+    },
+    {
+      "useCaseId": "travel_rule_v1",
+      "pack": "psav-travel-rule-br@1.0.0",
+      "packHash": "0xe0f11222a9f7953faa5fdd9521054ffee2ac51557d3b098cd8b87ee5f3d40405",
+      "packVersion": 10000,
+      "configureTx": "0xcce21100e27d214d1048bcb8145714b0e89c61d17cbb4d739a8ae1c0e93392b7",
+      "provisionalConfigureTx": "0xc13cab1ba3e52504d6beb086c3473ebbc749b0496cc84ad60fb12a4bfce65ab2"
     }
   ],
   "passportOracle": "0x27bb394d3fFdD7DDc5bb67F8C8Ee64073BeDF2b2",
