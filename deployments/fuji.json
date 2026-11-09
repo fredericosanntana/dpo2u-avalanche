@@ -1,0 +1,9 @@
+{
+  "network": "fuji",
+  "chainId": 43113,
+  "deployedAt": "2026-11-09T12:12:29.855Z",
+  "sp1Verifier": "0xA9EF51126b02DDb8C284C424EfC4C54893d5979E",
+  "registry": "0xc997C83FbF40c70867b9A969a2AC2ee2Ae87C4cE",
+  "zkThresholdAttestor": "0x0a48471953bEFaEDE2f75E0D9A54f0EAFe68B9B7",
+  "programVKey": "0x00a79ec59ae56e59d55164056cb52b261ac1bafd368d93deb43f153e5d93b414"
+}
