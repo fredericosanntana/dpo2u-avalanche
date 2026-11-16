@@ -1,0 +1,46 @@
+{
+  "format": "dpo2u.mirror-config-evidence/1",
+  "network": "fuji",
+  "mirror": "0x7eE6Ec344dcAFf706Bb4a195a8c242b38BDc8764",
+  "admin": "Safe 0xe99643149a7a4850Cad381deA97fdefC83b9773a (2-of-3)",
+  "date": "2026-11-16",
+  "changes": [
+    {
+      "safe_nonce": 2,
+      "safeTxHash": "0x77900d5bc4369e06d207195d2131d0be000d10bd12fcd1096fc04504045416c4",
+      "exec_tx": "0xd30d6952b1411aafaa6d492934c5343811afae9b13c8580bff805a695674bd9f",
+      "block": 61180125,
+      "calls": [
+        "setSource(\"midnight:preview\", 0xfc80569d\u2026d4f5, true)",
+        "setPolicy(0x2838bc5a\u2026bfd51, true)"
+      ],
+      "signers": [
+        "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01 (VPS, ECDSA)",
+        "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67 (desktop, approveHash)"
+      ]
+    },
+    {
+      "safe_nonce": 3,
+      "safeTxHash": "0x6741973d6f3a615a0101dc17e2fc473a4e74e914850f5df25037b04e71805ef4",
+      "exec_tx": "0x857d9c05d21e447ea0acf610ffe54e2222c2380fa71d541bd34a8db482579519",
+      "block": 61180847,
+      "calls": [
+        "setPolicy(0xa473911d\u2026bd50, true)"
+      ],
+      "signers": [
+        "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01 (VPS, ECDSA)",
+        "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67 (desktop, approveHash)"
+      ]
+    }
+  ],
+  "source_gate": {
+    "chain": "midnight:preview",
+    "contract": "fc80569d96a4555a51fd695d3f0e009eeb44043d46b7567fd9986a3bf0e2d4f5",
+    "version": "TravelRuleGate v11 (in-circuit sanctions screening)",
+    "institution": "staging (fictitious)"
+  },
+  "kept_allowed": [
+    "source 46a74a45\u2026",
+    "policy 6c1f46a8\u2026"
+  ]
+}

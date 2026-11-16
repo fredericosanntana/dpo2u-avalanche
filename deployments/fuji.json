@@ -183,18 +183,23 @@
     "source": {
       "chain": "midnight:preview",
       "contracts": [
-        "46a74a45cb0c0a8b336b4cda986886a4d685b5aba72372df518120af8517d62c"
+        "46a74a45cb0c0a8b336b4cda986886a4d685b5aba72372df518120af8517d62c",
+        "fc80569d96a4555a51fd695d3f0e009eeb44043d46b7567fd9986a3bf0e2d4f5"
       ]
     },
     "policies": [
-      "6c1f46a8fc85ecbf46ab71c9d838931f6a7621101b88e63e2b2473497b089ad4"
+      "6c1f46a8fc85ecbf46ab71c9d838931f6a7621101b88e63e2b2473497b089ad4",
+      "2838bc5a1b403876bbbcf59c01c1e1740bbc23240af154400d9278c6c51bfd51",
+      "a473911d79ba4c98dd3e15d5a680fbd0a1ecf88a15ff692be6c1251e2dd8bd50"
     ],
     "format": "dpo2u.travel-rule-verdict/1",
     "trustModel": "operator (no Midnight light client; M-of-N relayers)",
     "txs": {
       "source:46a74a45": "0xf0eae982a728e4eae7f49b69f6b86987fafd25cbe25bb22e8eb67e3ed4666dd6",
       "policy:6c1f46a8": "0x5c237b658e9f66dcd95a574e04e5110b389ea59c28525287567a14d2359ba87c",
-      "relayer:0x4B6fB8": "0x00eb9ccee9d3794e027f3a4e06a5fa32da14a5ed2285829fa5b19e96c8886730"
+      "relayer:0x4B6fB8": "0x00eb9ccee9d3794e027f3a4e06a5fa32da14a5ed2285829fa5b19e96c8886730",
+      "source:fc80569d+policy:2838bc5a (Safe nonce 2)": "0xd30d6952b1411aafaa6d492934c5343811afae9b13c8580bff805a695674bd9f",
+      "policy:a473911d (Safe nonce 3)": "0x857d9c05d21e447ea0acf610ffe54e2222c2380fa71d541bd34a8db482579519"
     },
     "deployedAt": "2026-11-16T03:46:45.406Z",
     "adminHandover": {
