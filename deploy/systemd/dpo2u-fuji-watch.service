@@ -1,0 +1,15 @@
+[Unit]
+Description=DPO2U Fuji bridge watch (relayer1 health, relay and verdict mirror vs Midnight) -> Alertmanager -> Telegram
+Documentation=https://github.com/fredericosanntana/dpo2u-avalanche/blob/feat/fuji-watch/scripts/fuji-watch.ts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/dpo2u-avalanche-watch
+Environment=WATCH_STATE_FILE=/var/lib/dpo2u-fuji-watch/state.json
+Environment=WATCH_INTERVAL_MIN=10
+ExecStart=/usr/bin/flock -n /run/dpo2u-fuji-watch.lock /usr/bin/env npx ts-node --transpile-only scripts/fuji-watch.ts
+TimeoutStartSec=540
+StandardOutput=append:/var/log/dpo2u-fuji-watch.log
+StandardError=append:/var/log/dpo2u-fuji-watch.log
