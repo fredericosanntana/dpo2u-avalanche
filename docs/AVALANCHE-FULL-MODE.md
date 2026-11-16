@@ -10,7 +10,7 @@
 | PSAV passport | `DPO2UPassportOracle` / V2 (UUPS, admin = Safe 2-of-3) | Fuji |
 | Midnight ComplianceRegistry seals | `DPO2UMidnightRelay` (k-of-n) | Fuji, 1-of-1, first seal relayed |
 | Travel Rule gate, attestation lane | `DPO2UTravelRuleGate` | Fuji (`0xCB53…3834`), no proof lanes |
-| **Travel Rule gate, proof lanes** | `DPO2UPolicyGroth16Verifier` (membership verifier: follow-up commit) | **this branch**, dev setup |
+| **Travel Rule gate, proof lanes** | `DPO2UPolicyGroth16Verifier`, `DPO2UMembershipGroth16Verifier` | Fuji: policy lane on gate `0x2343…6478`; membership verifier in this branch, not deployed (dev setup) |
 | **Midnight Travel Rule verdicts** | `DPO2UTravelRuleVerdictMirror` + `TravelRuleVerdictV1` | **this branch** |
 | Solvency, legal sources, sponsorship | `DPO2USolvencyRegistry`, `DPO2ULegalSourceManifest`, `DPO2USponsorshipRegistry` | Solvency on Fuji; the other two merged, not deployed |
 

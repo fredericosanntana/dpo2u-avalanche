@@ -2,11 +2,32 @@
   "policy": {
     "setup": "dev",
     "circuit": "dpo2u-stellar zk-prover/por/compliance_intent_policy.circom (feat/por-ceremony 7892e0b)",
-    "public_signals": ["policy_pass", "policy_commit", "context"],
+    "public_signals": [
+      "policy_pass",
+      "policy_commit",
+      "context"
+    ],
     "compiler": "circom2 0.2.22 (npm, wasm build of circom 2.x)",
     "ptau": "bn128 pow 11, 1 contribution (entropy 'dpo2u-policy-ptau-dev-fixed-entropy') + beacon 0102..1f20 x10",
     "zkey": "1 contribution (entropy 'dpo2u-policy-zkey-dev-fixed-entropy') + beacon 0102..1f20 x10",
     "files": "zk/policy/{compliance_intent_policy.wasm, policy_final.zkey, verification_key.json}",
     "verifier": "contracts/verifiers/DPO2UPolicyGroth16Verifier.sol"
+  },
+  "membership": {
+    "setup": "dev",
+    "circuit": "dpo2u-stellar zk-prover/membership/membership_withdraw.circom (depth 4, feat/por-ceremony 7892e0b)",
+    "public_signals": [
+      "root",
+      "nullifierHash",
+      "recipient",
+      "context"
+    ],
+    "compiler": "circom2 0.2.22 (npm, wasm build of circom 2.x)",
+    "constraints": 253310,
+    "ptau": "bn128 pow 18, 1 contribution (entropy 'dpo2u-membership-ptau-dev-fixed-entropy') + beacon 0102..1f20 x10",
+    "zkey": "1 contribution (entropy 'dpo2u-membership-zkey-dev-fixed-entropy') + beacon 0102..1f20 x10",
+    "zkey_sha256": "7b533c5f5c312db5c285a78edd2db06cddf6509150136669e0db995b2ed109e9",
+    "files": "zk/membership/verification_key.json only (the 131 MB zkey is not in git; rebuild it with the same entropy, or replace it with the ceremony zkey)",
+    "verifier": "contracts/verifiers/DPO2UMembershipGroth16Verifier.sol"
   }
 }

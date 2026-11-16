@@ -47,7 +47,7 @@ The Compact contract (dpo2u-midnight, branch `feat/midnight-travel-rule-disclosu
 
 ## Groth16 verifiers
 
-`contracts/verifiers/` holds the snarkjs-exported verifier of the dpo2u-stellar policy circuit, `DPO2UPolicyGroth16Verifier` (policy lane). The membership lane's `DPO2UMembershipGroth16Verifier` (253k-constraint circuit, pow 18 setup) comes in a follow-up commit; until then deploy with `TRG_DEPLOY_VERIFIERS=policy`. `test/TravelRuleGateGroth16.test.ts` generates a real policy proof for the context the gate derives from an intent and runs `executeWithProof` against the real verifier.
+`contracts/verifiers/` holds the snarkjs-exported verifiers of the two dpo2u-stellar circuits: `DPO2UPolicyGroth16Verifier` (policy lane) and `DPO2UMembershipGroth16Verifier` (membership lane, 253k constraints, pow 18 setup; its 131 MB zkey is not in git). `test/MembershipGroth16Verifier.test.ts` checks a real membership proof against it. `test/TravelRuleGateGroth16.test.ts` generates a real policy proof for the context the gate derives from an intent and runs `executeWithProof` against the real verifier.
 
 **They come from a DEV setup** (one contribution with fixed entropy + public beacon, `zk/setup.json`), good for Fuji and tests, not for mainnet: whoever knows the entropy can forge proofs. Before the C-Chain mainnet, run the multi-party ceremony for each circuit (dpo2u-stellar `scripts/zk-ceremony*`) and regenerate with `scripts/zk/export-verifiers.sh <lane> <final.zkey> <circuit.wasm> ceremony`. The deploy script refuses dev verifiers on `avalanche`.
 
