@@ -1,0 +1,12 @@
+{
+  "policy": {
+    "setup": "dev",
+    "circuit": "dpo2u-stellar zk-prover/por/compliance_intent_policy.circom (feat/por-ceremony 7892e0b)",
+    "public_signals": ["policy_pass", "policy_commit", "context"],
+    "compiler": "circom2 0.2.22 (npm, wasm build of circom 2.x)",
+    "ptau": "bn128 pow 11, 1 contribution (entropy 'dpo2u-policy-ptau-dev-fixed-entropy') + beacon 0102..1f20 x10",
+    "zkey": "1 contribution (entropy 'dpo2u-policy-zkey-dev-fixed-entropy') + beacon 0102..1f20 x10",
+    "files": "zk/policy/{compliance_intent_policy.wasm, policy_final.zkey, verification_key.json}",
+    "verifier": "contracts/verifiers/DPO2UPolicyGroth16Verifier.sol"
+  }
+}
