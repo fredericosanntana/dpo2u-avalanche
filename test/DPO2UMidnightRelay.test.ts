@@ -159,4 +159,40 @@ describe("midnight-relayer (off-chain loop) against the relay", () => {
     expect(ok.results[0].outcome).to.equal("registered");
     expect(ok.cursor).to.equal("c1");
   });
+
+  it("skips a seal that can never be registered (AttestationExists) and advances the cursor", async () => {
+    const { relayOnce } = await import("../src/midnight-relayer");
+    const [admin, r1, direct] = await ethers.getSigners();
+    const reg = await (await ethers.getContractFactory("DPO2UComplianceRegistry")).deploy(admin.address, 365 * DAY);
+    await reg.configureUseCase(UC, true, id("pack"), 1);
+    const relay = await (await ethers.getContractFactory("DPO2UMidnightRelay")).deploy(admin.address, await reg.getAddress(), 1);
+    await reg.authorizeSubmitter(await relay.getAddress(), true);
+    await relay.setRelayer(r1.address, true);
+    await relay.setRoute(MID_UC, UC, 90 * DAY);
+    // The same evidence was already registered under the use case by another path.
+    await reg.authorizeSubmitter(direct.address, true);
+    const s = seal() as any;
+    await reg.connect(direct).registerAttestation(UC, s.evidenceHash, id("subj"), 1, 0, id("m"), BigInt((await time.latest()) + 30 * DAY));
+    const fresh = seal({ evidenceHash: id("evidence-2"), midnightTx: id("midnight:tx:2") }) as any;
+    const source = { sealsSince: async () => ({ seals: [s, fresh], cursor: "c1" }) };
+
+    const out = await relayOnce({ source, relayAddress: await relay.getAddress(), signer: r1, cursor: "c0" });
+    expect(out.results.map((r) => r.outcome)).to.deep.equal(["skipped:reverted", "registered"]);
+    expect(out.results[0].error).to.equal("AttestationExists");
+    expect(out.cursor).to.equal("c1");
+  });
+
+  it("a configuration revert (relay not a registry submitter) is retried, not skipped", async () => {
+    const { relayOnce } = await import("../src/midnight-relayer");
+    const [admin, r1] = await ethers.getSigners();
+    const reg = await (await ethers.getContractFactory("DPO2UComplianceRegistry")).deploy(admin.address, 365 * DAY);
+    await reg.configureUseCase(UC, true, id("pack"), 1);
+    const relay = await (await ethers.getContractFactory("DPO2UMidnightRelay")).deploy(admin.address, await reg.getAddress(), 1);
+    await relay.setRelayer(r1.address, true);
+    await relay.setRoute(MID_UC, UC, 90 * DAY);
+    const source = { sealsSince: async () => ({ seals: [seal() as any], cursor: "c1" }) };
+    const out = await relayOnce({ source, relayAddress: await relay.getAddress(), signer: r1, cursor: "c0" });
+    expect(out.results[0].outcome).to.equal("failed");
+    expect(out.cursor).to.equal("c0");
+  });
 });
