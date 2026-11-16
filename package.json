@@ -22,6 +22,7 @@
     "@types/node": "^26.6.6",
     "dotenv": "^18.0.9",
     "hardhat": "^2.29.1",
+    "snarkjs": "^0.7.5",
     "solc": "^0.8.20",
     "ts-node": "^10.9.2",
     "typescript": "~5.6"
