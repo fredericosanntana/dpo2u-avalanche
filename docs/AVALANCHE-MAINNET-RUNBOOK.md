@@ -29,6 +29,8 @@ Deploy order matters: each step needs the address of the previous one.
 | 4 | Groth16 verifiers + `DPO2UTravelRuleGate` | `scripts/deploy-travel-rule-gate.ts` | `ADMIN_ADDRESS=<Safe>` | `TRG_DEPLOY_VERIFIERS=policy` (add `membership` only with its ceremony), `TRG_OPERATOR` |
 | 5 | PassportOracle V2, Solvency, others | their scripts | Safe | only if in the launch scope |
 
+**Caveat on step 2:** `deploy-midnight-relay.ts` assumes deployer = registry admin (it calls `authorizeSubmitter` on the registry itself). Either keep the deployer as registry admin until step 2 is done and hand the registry to the Safe right after, or split the authorize call out of the script and send it from the Safe. Decide before deploy day.
+
 Before each step, dry-run it on a hardhat fork of mainnet (`--network hardhat` with forking) or with `PLAN=1` where the script supports it (`deploy-verdict-mirror.ts` does since dde2d84). Record the output.
 
 ## 2. Gas budget
