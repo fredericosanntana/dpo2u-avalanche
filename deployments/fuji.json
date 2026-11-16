@@ -58,11 +58,25 @@
     },
     "deployedAt": "2026-11-16T03:47:46.748Z",
     "operator": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
-    "operatorAuthTx": "0x30dd9a16c3f0e714ea879d013a511b561aefee88447efcead6a3531320baef54"
+    "operatorAuthTx": "0x30dd9a16c3f0e714ea879d013a511b561aefee88447efcead6a3531320baef54",
+    "admin": "0xe99643149a7a4850Cad381deA97fdefC83b9773a",
+    "adminHandover": {
+      "safeTxHash": "0x0c1f1efa14c13ec53c51068a4de1312b7e31df41ffa73d3ee654b5621d40a65a",
+      "safeNonce": 1,
+      "execTransaction": "0x67c2bb8393f71b099a8847b48b64ef55593a14eea62526d66a6722374977ea01",
+      "block": 61155942,
+      "signers": [
+        "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01 (VPS, ECDSA)",
+        "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67 (desktop, approveHash 0x68d7c120a13d2606e2407618475e9d960064b7d3b3dc88130a6edc1af061097a)"
+      ],
+      "date": "2026-11-16",
+      "transferAdminTx": "0xc4d6d75576a30c36dbd6a747f25d11db47eaf3410132da6b32124fb2eac9be59",
+      "previousAdmin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a"
+    }
   },
   "midnightRelay": {
     "address": "0xeF52a2F26E0A5E558A87b34Bd98E910F3F64D845",
-    "admin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+    "admin": "0xe99643149a7a4850Cad381deA97fdefC83b9773a",
     "threshold": 1,
     "relayers": [
       {
@@ -111,6 +125,19 @@
         "isValid": false
       },
       "indexer": "public preview indexer (PROVISIONAL bridge until relayer #1's own node+indexer are synced)"
+    },
+    "adminHandover": {
+      "safeTxHash": "0x0c1f1efa14c13ec53c51068a4de1312b7e31df41ffa73d3ee654b5621d40a65a",
+      "safeNonce": 1,
+      "execTransaction": "0x67c2bb8393f71b099a8847b48b64ef55593a14eea62526d66a6722374977ea01",
+      "block": 61155942,
+      "signers": [
+        "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01 (VPS, ECDSA)",
+        "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67 (desktop, approveHash 0x68d7c120a13d2606e2407618475e9d960064b7d3b3dc88130a6edc1af061097a)"
+      ],
+      "date": "2026-11-16",
+      "transferAdminTx": "0x88e9f51059f1d82b05f2722c37d83d8178f5d35f26c96c58784d9fd0c40db9fd",
+      "previousAdmin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a"
     }
   },
   "solvencyRegistry": {
@@ -147,7 +174,7 @@
   "travelRuleVerdictMirror": {
     "address": "0x7eE6Ec344dcAFf706Bb4a195a8c242b38BDc8764",
     "deployTx": "0xaea3dc70edb90ad8845249a3ee92d0e9d5076e7bb2865742463c0d24f7b2ba5f",
-    "admin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+    "admin": "0xe99643149a7a4850Cad381deA97fdefC83b9773a",
     "pendingAdmin": null,
     "threshold": 1,
     "relayers": [
@@ -169,7 +196,20 @@
       "policy:6c1f46a8": "0x5c237b658e9f66dcd95a574e04e5110b389ea59c28525287567a14d2359ba87c",
       "relayer:0x4B6fB8": "0x00eb9ccee9d3794e027f3a4e06a5fa32da14a5ed2285829fa5b19e96c8886730"
     },
-    "deployedAt": "2026-11-16T03:46:45.406Z"
+    "deployedAt": "2026-11-16T03:46:45.406Z",
+    "adminHandover": {
+      "safeTxHash": "0x0c1f1efa14c13ec53c51068a4de1312b7e31df41ffa73d3ee654b5621d40a65a",
+      "safeNonce": 1,
+      "execTransaction": "0x67c2bb8393f71b099a8847b48b64ef55593a14eea62526d66a6722374977ea01",
+      "block": 61155942,
+      "signers": [
+        "0x21051D00C39f6Ecb7E289E43602bB808bcbf7D01 (VPS, ECDSA)",
+        "0x26d9eE155E6Bf7218F48acab13F1D15DBc967d67 (desktop, approveHash 0x68d7c120a13d2606e2407618475e9d960064b7d3b3dc88130a6edc1af061097a)"
+      ],
+      "date": "2026-11-16",
+      "transferAdminTx": "0x67eea32ea170d56004e6ba0d577010384ae551063e77c3aec0cce1208a5f79be",
+      "previousAdmin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a"
+    }
   },
   "previousTravelRuleGates": [
     {
