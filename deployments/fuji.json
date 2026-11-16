@@ -40,18 +40,25 @@
   "passportIssuer": "0xA6203d148a66Bf1fd39eC0Ea48d65F7945B67d4F",
   "passportIssuerAuthTx": "0x15aa1340b09f02379b5c1228adaacbc5272a7e626f22d7d4d270a4bd86127af2",
   "travelRuleGate": {
-    "gate": "0xCB53038Bf6105F00F9FD48Fa22d0f77b6BE93834",
-    "gateDeployTx": "0x020e32d7e65dc62ce9012d48f2957b15884be0f14980b4c6482515f21ba2dc96",
-    "target": "0xC70b108404E5c60DA0De8D18e4534061c80F2F42",
-    "targetDeployTx": "0xc08a4136f6c44763a74afbd40ae421237f18cfebc3e45dc8392d46dc4b912e78",
-    "bindGateTx": "0x1ee4ad15bfd0acfe9cd20e5f1360d742f6e676c49211dd2f136adcef9e5f539c",
+    "gate": "0x23436EE71f1E86d056112ff0dF546d5827dC6478",
+    "gateDeployTx": "0xb53f83497b6efe340df562fa64a1683489e257fdf3e2fb427853944be12e3675",
+    "target": "0x23F75588C1810153B2ae504961BceedA6A1B6FE5",
+    "targetDeployTx": "0xcef474fde28da93055fc43312d1e43a22a1207fadffaa207c42c7fa8971ec61c",
+    "bindGateTx": "0x85c85359013d5b04e8abe131b52d2c047009ee98c4e4917469686efdcbe6d091",
     "useCase": "travel_rule_v1",
     "useCaseId": "0x7afc1be6b77430b3b40c172a773d1d401c2b8b5d4009b2fd0f497f19786e7d6c",
     "partyUseCase": null,
-    "lanes": "attestation only (no Groth16 verifiers)",
-    "deployedAt": "2026-11-09T16:44:08.860Z",
+    "lanes": "attestation + policy",
+    "verifiers": {
+      "policy": {
+        "address": "0x9BF7616ab882306B734cb45C0Fe4Ad8747fB7c7c",
+        "deployTx": "0xd3bafed583416745dbbbb61f4aa0ed73928cd70c5af5dd8d974c19647433544e",
+        "setup": "dev"
+      }
+    },
+    "deployedAt": "2026-11-16T03:47:46.748Z",
     "operator": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
-    "operatorAuthTx": "0x533517b2c4301694108132972f5b31bea8fe4d105b900dc0c6678a18313eeecd"
+    "operatorAuthTx": "0x30dd9a16c3f0e714ea879d013a511b561aefee88447efcead6a3531320baef54"
   },
   "midnightRelay": {
     "address": "0xeF52a2F26E0A5E558A87b34Bd98E910F3F64D845",
@@ -70,6 +77,16 @@
         "useCaseId": "0xaf248c859b2ca2d9bea07268de5f05bc8b8b2731a0ac79627700aed2bf4cadc3",
         "validitySeconds": 7776000,
         "tx": "0xe117b4c1429ee3289cde0580bacc4375e39fa51ff69a0a6d6695412204f8c313"
+      },
+      {
+        "useCase": "lgpd_attestation_midnight_v1",
+        "midnightUseCaseId": "0x038551436fbfa6b81ebfb31f30ce13a84ea92788eec896cc74a7917cf2e9faf2",
+        "midnightSource": "dpo2u/lgpd-attestation/v1|lgpd@1.1.0 on ComplianceRegistry v10 c475215e\u2026",
+        "useCaseId": "0x7e8da67e583472543cb67e249a01423ebebb9e8d0e4f777ee68b5ef6d217af57",
+        "validitySeconds": 7776000,
+        "configureUseCaseTx": "0x97fea3cbbb469b320c8c5429a0b19ef2e6b619878d50e954bf813a9e29ab6f67",
+        "setRouteTx": "0x5fc9983856b1f5cc19b421f7131531f1857e773867ac51a00a76db93f7400f4a",
+        "note": "own use case so the relay never collides with the LGPD bridge's direct Fuji writes (lgpd_attestation_v1)"
       }
     ],
     "txs": {
@@ -126,5 +143,48 @@
         "cgroup": "MemoryMax=18G MemorySwapMax=16G, dedicated swapfile removed after"
       }
     }
-  }
+  },
+  "travelRuleVerdictMirror": {
+    "address": "0x7eE6Ec344dcAFf706Bb4a195a8c242b38BDc8764",
+    "deployTx": "0xaea3dc70edb90ad8845249a3ee92d0e9d5076e7bb2865742463c0d24f7b2ba5f",
+    "admin": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+    "pendingAdmin": null,
+    "threshold": 1,
+    "relayers": [
+      "0x4B6fB8ABF85E48ad9Bb80E76949045e7b1C1FcB2"
+    ],
+    "source": {
+      "chain": "midnight:preview",
+      "contracts": [
+        "46a74a45cb0c0a8b336b4cda986886a4d685b5aba72372df518120af8517d62c"
+      ]
+    },
+    "policies": [
+      "6c1f46a8fc85ecbf46ab71c9d838931f6a7621101b88e63e2b2473497b089ad4"
+    ],
+    "format": "dpo2u.travel-rule-verdict/1",
+    "trustModel": "operator (no Midnight light client; M-of-N relayers)",
+    "txs": {
+      "source:46a74a45": "0xf0eae982a728e4eae7f49b69f6b86987fafd25cbe25bb22e8eb67e3ed4666dd6",
+      "policy:6c1f46a8": "0x5c237b658e9f66dcd95a574e04e5110b389ea59c28525287567a14d2359ba87c",
+      "relayer:0x4B6fB8": "0x00eb9ccee9d3794e027f3a4e06a5fa32da14a5ed2285829fa5b19e96c8886730"
+    },
+    "deployedAt": "2026-11-16T03:46:45.406Z"
+  },
+  "previousTravelRuleGates": [
+    {
+      "gate": "0xCB53038Bf6105F00F9FD48Fa22d0f77b6BE93834",
+      "gateDeployTx": "0x020e32d7e65dc62ce9012d48f2957b15884be0f14980b4c6482515f21ba2dc96",
+      "target": "0xC70b108404E5c60DA0De8D18e4534061c80F2F42",
+      "targetDeployTx": "0xc08a4136f6c44763a74afbd40ae421237f18cfebc3e45dc8392d46dc4b912e78",
+      "bindGateTx": "0x1ee4ad15bfd0acfe9cd20e5f1360d742f6e676c49211dd2f136adcef9e5f539c",
+      "useCase": "travel_rule_v1",
+      "useCaseId": "0x7afc1be6b77430b3b40c172a773d1d401c2b8b5d4009b2fd0f497f19786e7d6c",
+      "partyUseCase": null,
+      "lanes": "attestation only (no Groth16 verifiers)",
+      "deployedAt": "2026-11-09T16:44:08.860Z",
+      "operator": "0x7589A178945FCaDCec1db7e18B69DfBF2ed5B68a",
+      "operatorAuthTx": "0x533517b2c4301694108132972f5b31bea8fe4d105b900dc0c6678a18313eeecd"
+    }
+  ]
 }
