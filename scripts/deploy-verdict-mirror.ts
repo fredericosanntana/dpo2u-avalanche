@@ -9,6 +9,7 @@
 //   RELAYER_ADDRESS         relayer #1 (comma list for more); each with its own key and Midnight indexer
 //   MIRROR_THRESHOLD        default 1
 //   ADMIN_ADDRESS           optional two-step admin transfer (e.g. the Safe); the Safe must call acceptAdmin
+//   PLAN=1                  validate the inputs and print what would be deployed; sends nothing
 // TRUST MODEL: operator trust, not a proof (docs/TRAVEL-RULE-VERDICT-MIRROR.md).
 import { ethers, network } from "hardhat";
 import fs from "node:fs";
@@ -32,6 +33,11 @@ async function main() {
   if (relayers.some((r) => r.toLowerCase() === deployer.address.toLowerCase())) throw new Error("a relayer must not be the deployer/admin");
   console.log(`network=${network.name} deployer=${deployer.address} source=${sourceChain} gates=${sources.join(",")} threshold=${threshold}/${relayers.length}`);
 
+  if (process.env.PLAN === "1") {
+    console.log(JSON.stringify({ plan: { network: network.name, admin: deployer.address, pendingAdmin: process.env.ADMIN_ADDRESS || null, threshold, relayers,
+      source: { chain: sourceChain, contracts: sources }, policies, sends: "nothing (PLAN=1)" } }, null, 2));
+    return;
+  }
   const m = await (await ethers.getContractFactory("DPO2UTravelRuleVerdictMirror")).deploy(deployer.address, threshold);
   await m.waitForDeployment();
   const txs: Record<string, string> = {};
