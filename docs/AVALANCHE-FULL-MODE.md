@@ -10,7 +10,7 @@
 | PSAV passport | `DPO2UPassportOracle` / V2 (UUPS, admin = Safe 2-of-3) | Fuji |
 | Midnight ComplianceRegistry seals | `DPO2UMidnightRelay` (k-of-n) | Fuji, 1-of-1, first seal relayed |
 | Travel Rule gate, attestation lane | `DPO2UTravelRuleGate` | Fuji (`0xCB53…3834`), no proof lanes |
-| **Travel Rule gate, proof lanes** | `DPO2UPolicyGroth16Verifier`, `DPO2UMembershipGroth16Verifier` | **this branch**, dev setup |
+| **Travel Rule gate, proof lanes** | `DPO2UPolicyGroth16Verifier` (membership verifier: follow-up commit) | **this branch**, dev setup |
 | **Midnight Travel Rule verdicts** | `DPO2UTravelRuleVerdictMirror` + `TravelRuleVerdictV1` | **this branch** |
 | Solvency, legal sources, sponsorship | `DPO2USolvencyRegistry`, `DPO2ULegalSourceManifest`, `DPO2USponsorshipRegistry` | Solvency on Fuji; the other two merged, not deployed |
 
@@ -30,7 +30,7 @@
    ```
 3. Gate with proof lanes (new gate; the old one stays listed):
    ```
-   TRG_DEPLOY_VERIFIERS=policy,membership TRG_OPERATOR=<operator> npx hardhat run scripts/deploy-travel-rule-gate.ts --network fuji
+   TRG_DEPLOY_VERIFIERS=policy TRG_OPERATOR=<operator> npx hardhat run scripts/deploy-travel-rule-gate.ts --network fuji
    ```
 4. Hand both admins to the Safe (`ADMIN_ADDRESS=<Safe>` on deploy, then `acceptAdmin` from the Safe).
 5. Commit `deployments/fuji.json` and the evidence record.
