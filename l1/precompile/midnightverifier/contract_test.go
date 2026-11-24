@@ -284,7 +284,7 @@ func otherParams(t testing.TB, params []byte) []byte {
 func TestStellarFixtureProof(t *testing.T) {
 	// poseidon: zk-stdlib relation; zkir-hash and escrow-context: Compact circuits (ZKIR v2) proved
 	// by the Midnight ledger's own prover, key taken from the ledger's VerifierKey.
-	for _, name := range []string{"poseidon-k6-midnight", "zkir-hash", "escrow-context"} {
+	for _, name := range []string{"poseidon-k6-midnight", "zkir-hash", "escrow-context", "travel-rule-gate-v12"} {
 		t.Run(name, func(t *testing.T) { stellarFixture(t, name) })
 	}
 }
@@ -311,6 +311,29 @@ func stellarFixture(t *testing.T, name string) {
 		}
 		t.Run(c.name, func(t *testing.T) { test.Run(t, Module) })
 	}
+}
+
+// TestVerifyGasCalibrationTravelRuleGate: the real TravelRuleGate v12 evaluateTransfer proof
+// (k=17, 417 public inputs) must also stay within the gas charged at 20 Mgas/s.
+func TestVerifyGasCalibrationTravelRuleGate(t *testing.T) {
+	v := loadVectorFrom(t, "travel-rule-gate-v12")
+	pi := make([]byte, 0, 32*len(v.publicInputs))
+	for _, x := range v.publicInputs {
+		w := common.BigToHash(x)
+		pi = append(pi, w[:]...)
+	}
+	const runs = 10
+	start := time.Now()
+	for i := 0; i < runs; i++ {
+		ok, err := nativeVerify(v.params, v.vk, pi, v.proof)
+		require.NoError(t, err)
+		require.True(t, ok)
+	}
+	perCall := time.Since(start) / runs
+	charged := VerifyGasCost + VerifyInputGas(len(v.vk), len(v.params), len(v.publicInputs), len(v.proof))
+	gasAt20M := uint64(perCall.Seconds() * 20_000_000)
+	t.Logf("TravelRuleGate v12: native verify %v, about %d gas at 20 Mgas/s; charged %d", perCall, gasAt20M, charged)
+	require.Less(t, gasAt20M, charged)
 }
 
 // TestVerifyGasCalibration checks that the base verify cost stays above what native verification

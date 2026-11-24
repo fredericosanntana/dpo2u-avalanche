@@ -41,7 +41,7 @@ const (
 	// Bounds so a single call cannot ask for unbounded native work.
 	MaxVerifyingKeySize = 32 * 1024
 	MaxProofSize        = 64 * 1024
-	MaxPublicInputs     = 256
+	MaxPublicInputs     = 1024
 )
 
 var (
