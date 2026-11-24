@@ -8,14 +8,14 @@ Design: SOTA doc "SOTA: DPO2U Compliance L1 na Avalanche" (requirement IDs L1-*,
 Decisions (Frederico, 2026-11-23): runs in parallel with the Stellar escrow; L1 name **DPO2U**;
 validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the Fuji Safe's (VPS, desktop, phone).
 
-## Status: phase A1 (this folder + `contracts/l1/`)
+## Status: phases A1 + A2 (this folder + `contracts/l1/`)
 
 | Piece | File | State |
 |---|---|---|
-| Genesis template | `l1/genesis/dpo2u-l1.genesis.template.json` | Template; chain not created |
+| Genesis template | `l1/genesis/dpo2u-l1.genesis.template.json` | Template (with `midnightVerifierConfig`); chain not created |
 | ComplianceGate (GE-1..GE-5) | `contracts/l1/DPO2UL1ComplianceGate.sol` | Tested with a mock verifier |
 | C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter |
-| MidnightVerifier (MVE-*) | `contracts/l1/interfaces/IMidnightVerifier.sol` | Interface only; phase A2 |
+| MidnightVerifier (MVE-*) | `l1/precompile/` (precompile at `0x0300…00d2`) | A2: Midnight's own verifier via FFI; tested end to end on a simulated Subnet-EVM chain; accepts the Soroban verifier's proof |
 | Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter |
 
 Nothing is deployed. No keys, no AVAX spent.
@@ -29,6 +29,8 @@ Nothing is deployed. No keys, no AVAX spent.
   wallets between None and Enabled, and cannot touch the Safe.
 - `feeManagerConfig`: admin = Safe.
 - `warpConfig`: ICM on, quorum 67%.
+- `midnightVerifierConfig`: the MidnightVerifier precompile, with Midnight's `[tau]_2` pinned.
+  Needs the DPO2U VM build (`l1/precompile`, see its README) instead of stock Subnet-EVM.
 - The validator manager (PoA, ACP-77) and the TeleporterMessenger are added when the chain is
   created with the Avalanche tooling; their owner is the Safe. Check that the Teleporter deployer
   address is enabled on the Transaction AllowList, or pre-allocate the messenger in the genesis.
@@ -59,6 +61,5 @@ demo, the PoA validators are DPO2U's, so the ICM signature is as trustworthy as 
 
 ## Next phases
 
-A2 MidnightVerifier (Go precompile over gnark-crypto, or Solidity over EIP-2537 if available) passing
-the Soroban verifier's vectors · A3 real `evaluateTransfer` proof + CVM test token with delivery vs
+A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 real `evaluateTransfer` proof + CVM test token with delivery vs
 payment · A4 ICM to the Fuji C-Chain + demo video.

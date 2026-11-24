@@ -1,0 +1,38 @@
+[package]
+name = "dpo2u-midnight-verifier-ffi"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Midnight (midnight-zk) proof verifier exposed over a C ABI for the DPO2U L1 precompile"
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+# Pinned to the stack the Midnight ledger proves with (midnight-zk-stdlib 2.4.0 over
+# midnight-proofs 0.8.x): the verifier must match the prover byte for byte.
+midnight-zk-stdlib = "=2.4.0"
+midnight-proofs = { version = "=0.8.2", default-features = false, features = ["circuit-params", "committed-instances"] }
+midnight-curves = "=0.3.1"
+midnight-circuits = "=7.3.0"
+blake2b_simd = "1"
+ff = "0.13"
+rand = "0.8"
+rand_chacha = "0.3"
+
+[dev-dependencies]
+
+[[bin]]
+name = "gen-vectors"
+path = "src/bin/gen_vectors.rs"
+
+[[bin]]
+name = "cross-vectors"
+path = "src/bin/cross_vectors.rs"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+# No `panic = "abort"`: the C ABI catches panics so a malformed input can never take the node down.
+

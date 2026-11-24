@@ -1,0 +1,8 @@
+{
+  "relation": "midnight-zk zk_stdlib membership example",
+  "midnightZkStdlib": "2.4.0 (crates.io; midnight-proofs 0.8.2, the ledger stack)",
+  "k": 12,
+  "srs": "INSECURE unsafe_setup, ChaCha20 seed 0xD902 (test only)",
+  "publicInputs": ["0x31de56d2a02fa272f884242d9369bd26483e79f5649d38e54fb74aac47db0f7e", "0x0000000000000000000000000000000000000000000000000000000000000088"],
+  "sizes": { "params": 96, "vk": 1325, "proof": 2912 }
+}
