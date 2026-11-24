@@ -279,10 +279,18 @@ func otherParams(t testing.TB, params []byte) []byte {
 	return b
 }
 
-// TestStellarFixtureProof: the Poseidon proof the Soroban verifier was built against (Stellar
+// TestStellarFixtureProof: the proofs the Soroban verifier was built against (Stellar
 // thread, Midnight SRS bls_midnight_2p14 = the real [tau]_2) is accepted through the precompile too.
 func TestStellarFixtureProof(t *testing.T) {
-	v := loadVectorFrom(t, "poseidon-k6-midnight")
+	// poseidon: zk-stdlib relation; zkir-hash and escrow-context: Compact circuits (ZKIR v2) proved
+	// by the Midnight ledger's own prover, key taken from the ledger's VerifierKey.
+	for _, name := range []string{"poseidon-k6-midnight", "zkir-hash", "escrow-context"} {
+		t.Run(name, func(t *testing.T) { stellarFixture(t, name) })
+	}
+}
+
+func stellarFixture(t *testing.T, name string) {
+	v := loadVectorFrom(t, name)
 	vkHash := VerifyingKeyHash(v.vk)
 	bad := cloneInts(v.publicInputs)
 	bad[0].Xor(bad[0], big.NewInt(1))
