@@ -40,7 +40,8 @@ MIDNIGHT_SRS=<midnight-transient-crypto-3.1.0>/static/bls_midnight_2p14 \
 | #0 | deployer |
 | #1 | stand-in for the Safe |
 | #2 | ICM relayer |
-| #3 | subject |
+| #3 | subject (seller in the DvP run) |
+| #4 | buyer in the DvP run |
 
 It sets chain id 432100 and uses the current time as the Warp activation. These keys and this
 chain are for local use only.
@@ -100,3 +101,24 @@ constrains `pass == 1`. It is a genuine Midnight proof (zk-stdlib 2.4.0, Midnigh
 exercises the real verifier, precompile, gate and AllowList. It proves nothing about Travel Rule
 compliance: **never pin its key in a real policy.** The next step replaces it with the TravelRuleGate
 `evaluateTransfer` proof (k=17) and maps that statement onto the gate's layout.
+
+## CVM test token with delivery vs payment (`a3-cvm-dvp-local-e2e.ts`)
+
+Same network, same run steps, other script. Contracts in `contracts/l1/cvm/`:
+
+- `DPO2UL1SecurityToken`: a TEST security token (not an offer, no legal effect). Every mint and
+  transfer requires the receiver, and the sender, to hold a gate admission right now. That adds to
+  the AllowList: it also blocks receiving, and it blocks an admission that expired but was not yet
+  removed. The issuer can pause, redeem, and make a logged `controllerTransfer` (court order) to an
+  admitted wallet.
+- `DPO2UL1TestCash`: test BRL (2 decimals).
+- `DPO2UL1DvP`: the seller proposes, the named buyer settles. Both legs move in one transaction or
+  neither does. The contract holds no tokens.
+
+Run (2026-11-24): two wallets admitted by Midnight proof; mint and transfer to a non-admitted
+wallet refused (`NotAdmitted`); trade of 10 units for R$ 250.00 settled in one tx (144,225 gas);
+after the gate froze the buyer, a second trade could not settle and nothing moved.
+
+Data protection (LGPD/GDPR): on chain there are only wallets, amounts and hashes (terms, trade
+confirmation, court-order reference). The person behind a wallet, the KYC file and the Travel
+Rule data stay with the VASP and the issuer.

@@ -16,7 +16,8 @@ validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the F
 | ComplianceGate (GE-1..GE-5) | `contracts/l1/DPO2UL1ComplianceGate.sol` | Tested with a mock verifier |
 | C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter |
 | MidnightVerifier (MVE-*) | `l1/precompile/` (precompile at `0x0300…00d2`) | A2: Midnight's own verifier via FFI; tested end to end on a simulated Subnet-EVM chain; accepts the Soroban verifier's proof |
-| Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter |
+| CVM test asset + DvP | `contracts/l1/cvm/` | TEST security token that only gate-admitted wallets hold, test BRL, atomic delivery vs payment; run on the local network |
+| Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter, admission switch |
 | Local network (A3) | `l1/precompile/localnet`, `l1/localnet/` | The gate admits and revokes a wallet on a real AvalancheGo node, using a Midnight proof checked by the precompile (test circuit); the real TravelRuleGate v12 proof passes the gate's Midnight statement lane |
 
 Nothing is deployed. No keys, no AVAX spent.
@@ -68,5 +69,4 @@ demo, the PoA validators are DPO2U's, so the ICM signature is as trustworthy as 
 
 ## Next phases
 
-A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 local network: done (`l1/localnet/README.md`); still to do in A3: real `evaluateTransfer` proof + CVM test token with delivery vs
-payment · A4 ICM to the Fuji C-Chain + demo video.
+A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 local network: done (`l1/localnet/README.md`); CVM test token with delivery vs payment: done (`contracts/l1/cvm/`); still to do in A3: a real `evaluateTransfer` proof made for an L1 admission context · A4 ICM to the Fuji C-Chain + demo video.
