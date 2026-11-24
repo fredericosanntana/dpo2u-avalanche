@@ -30,10 +30,10 @@ func TestMain(m *testing.M) {
 }
 
 // TestEndToEndOnSubnetEVM runs the precompile inside a real Subnet-EVM chain (simulated backend):
-// enabled from genesis with Midnight's Filecoin [tau]_2, a key registered by a signed transaction,
+// enabled from genesis with Midnight's [tau]_2 (bls_midnight_2p14), a key registered by a signed transaction,
 // and the Stellar fixture proof verified through eth_call.
 func TestEndToEndOnSubnetEVM(t *testing.T) {
-	dir := filepath.Join("..", "testdata", "poseidon-k6-filecoin")
+	dir := filepath.Join("..", "testdata", "poseidon-k6-midnight")
 	read := func(n string) []byte { b, err := os.ReadFile(filepath.Join(dir, n)); require.NoError(t, err); return b }
 	verifierParams, vk, proof := read("params.bin"), read("vk.bin"), read("proof.bin")
 	var meta struct{ PublicInputs []string }

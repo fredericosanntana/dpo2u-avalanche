@@ -1,5 +1,5 @@
 {
-  "_comment": "DPO2U L1 (Subnet-EVM) genesis template, phase A1. Replace every __PLACEHOLDER__ before creating the chain; see l1/README.md. Safe = the L1 Safe 2-of-3 (VPS, desktop, phone). The ComplianceGate is not in the genesis: the Safe makes it a Manager of the Transaction AllowList after deploying it. midnightVerifierConfig (phase A2) needs the DPO2U VM build (l1/precompile) and pins Midnight's KZG [tau]_2 (Filecoin SRS).",
+  "_comment": "DPO2U L1 (Subnet-EVM) genesis template, phase A1. Replace every __PLACEHOLDER__ before creating the chain; see l1/README.md. Safe = the L1 Safe 2-of-3 (VPS, desktop, phone). The ComplianceGate is not in the genesis: the Safe makes it a Manager of the Transaction AllowList after deploying it. midnightVerifierConfig (phase A2) needs the DPO2U VM build (l1/precompile) and pins Midnight's KZG [tau]_2 (Midnight SRS bls_midnight_2p14, not Filecoin).",
   "config": {
     "chainId": "__CHAIN_ID__",
     "feeConfig": {
@@ -32,7 +32,7 @@
     },
     "midnightVerifierConfig": {
       "blockTimestamp": 0,
-      "verifierParams": "0xb16010f1b3d33aa5f3f608c385400979ed36dc3fab53d3626f519c74d7e1ebef62c9ad35796404ce2fc3ebb42167b5a1050ac27c3527072b81af0fa9a683e226da79275f2985c9e89a0db969b76e0b6be94fee874c48586737ad5588cf1e1041"
+      "verifierParams": "0xa4bbe1a24fcc4f988c6ef268d0c1160eac0a0c4f53d80bd74f3d2e4667be27408625a83825354e27c70859883102eb4307acb569b3187c0fd1993980aa52a6e9e2080b9697fab96abd5c5f1c3b988256f2d99366f1bbccf13cf0e20702fee18c"
     }
   },
   "alloc": {

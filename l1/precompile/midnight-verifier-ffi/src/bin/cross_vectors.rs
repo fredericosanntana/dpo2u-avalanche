@@ -1,14 +1,15 @@
 //! Cross-implementation vector: the Poseidon proof the Stellar (Soroban) verifier was built against
 //! must also verify here, under a verifying key we derive ourselves from the same circuit and SRS.
 //!
-//! Usage: `SRS_DIR=<dir with bls_filecoin_2p19> cross-vectors <stellar fixtures/midnight/poseidon>`
-//! Writes `../testdata/poseidon-k6-filecoin/`.
+//! Usage: `cross-vectors <bls_midnight_2p14> <stellar fixtures/midnight/poseidon>`
+//! Writes `../testdata/poseidon-k6-midnight/`.
 //!
 //! The relation is copied from dpo2u-stellar-compliance-escrow `tools/midnight-export` (Apache-2.0).
-//! SRS: the Filecoin one Midnight uses (`bls_filecoin_2p19`), so `params.bin` is Midnight's real
-//! `[tau]_2`, not a test value.
+//! SRS: Midnight's own (`bls_midnight_2p14`, shipped in midnight-transient-crypto 3.1.0 `static/`,
+//! what the proof server and the ledger use). `params.bin` is therefore Midnight's real `[tau]_2`.
+//! It is NOT the Filecoin SRS: a ledger proof does not verify under that one.
 
-use std::{env, fs, io::Write, path::PathBuf};
+use std::{env, fs, io::{BufReader, Write}, path::PathBuf};
 
 use midnight_circuits::instructions::{AssignmentInstructions, PublicInputInstructions};
 use midnight_proofs::{
@@ -16,7 +17,9 @@ use midnight_proofs::{
     plonk::Error,
     utils::SerdeFormat,
 };
-use midnight_zk_stdlib::{utils::plonk_api::filecoin_srs, Relation, ZkStdLib, ZkStdLibArch};
+use midnight_curves::Bls12;
+use midnight_proofs::poly::kzg::params::ParamsKZG;
+use midnight_zk_stdlib::{Relation, ZkStdLib, ZkStdLibArch};
 
 type F = midnight_curves::Fq;
 
@@ -58,8 +61,15 @@ impl Relation for PoseidonPreimage {
 }
 
 fn main() {
-    let src = PathBuf::from(env::args().nth(1).expect("path to the Stellar poseidon fixture"));
-    let srs = filecoin_srs(6);
+    let srs_path = env::args().nth(1).expect("path to bls_midnight_2p14");
+    let src = PathBuf::from(env::args().nth(2).expect("path to the Stellar poseidon fixture"));
+    // Same reader as midnight-transient-crypto's ParamsProver::read.
+    let mut srs = ParamsKZG::<Bls12>::read_custom(
+        &mut BufReader::new(fs::File::open(srs_path).unwrap()),
+        SerdeFormat::RawBytesUnchecked,
+    )
+    .unwrap();
+    srs.downsize(6);
     let vk = midnight_zk_stdlib::setup_vk(&srs, &PoseidonPreimage);
 
     let mut vk_bytes = vec![];
@@ -86,7 +96,7 @@ fn main() {
         "the Stellar fixture proof must verify under our key"
     );
 
-    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../testdata/poseidon-k6-filecoin");
+    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../testdata/poseidon-k6-midnight");
     fs::create_dir_all(&out).unwrap();
     fs::write(out.join("params.bin"), &params).unwrap();
     fs::write(out.join("vk.bin"), &vk_bytes).unwrap();
@@ -94,7 +104,7 @@ fn main() {
     let mut meta = fs::File::create(out.join("vector.json")).unwrap();
     write!(
         meta,
-        "{{\n  \"relation\": \"Poseidon preimage (dpo2u-stellar-compliance-escrow tools/midnight-export)\",\n  \"midnightZkStdlib\": \"2.4.0 (midnight-proofs 0.8.2, the ledger stack)\",\n  \"k\": 6,\n  \"srs\": \"Filecoin bls_filecoin_2p19 (Midnight's SRS)\",\n  \"proofSource\": \"dpo2u-stellar-compliance-escrow fixtures/midnight/poseidon/proof.bin (PR #3), byte for byte\",\n  \"publicInputs\": [\"{}\"],\n  \"sizes\": {{ \"params\": {}, \"vk\": {}, \"proof\": {} }}\n}}\n",
+        "{{\n  \"relation\": \"Poseidon preimage (dpo2u-stellar-compliance-escrow tools/midnight-export)\",\n  \"midnightZkStdlib\": \"2.4.0 (midnight-proofs 0.8.2, the ledger stack)\",\n  \"k\": 6,\n  \"srs\": \"Midnight bls_midnight_2p14 (midnight-transient-crypto 3.1.0 static/), downsized to k=6\",\n  \"proofSource\": \"dpo2u-stellar-compliance-escrow fixtures/midnight/poseidon/proof.bin (branch feat/fase-3-travel-rule-gate), byte for byte\",\n  \"publicInputs\": [\"{}\"],\n  \"sizes\": {{ \"params\": {}, \"vk\": {}, \"proof\": {} }}\n}}\n",
         pis.join("\", \""),
         params.len(),
         vk_bytes.len(),

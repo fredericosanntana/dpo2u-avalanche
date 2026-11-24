@@ -35,7 +35,9 @@ function verify(bytes32 vkHash, bytes proof, uint256[] publicInputs) view return
 - `publicInputs` are the circuit's BLS12-381 scalars as `uint256`. A value `>= r` is an error, not
   reduced. A wrong count is an error. A proof that does not verify, or does not parse, is `false`.
 - `verifierParams` (`[tau]_2`, 96 bytes) come from the genesis or a network upgrade, never from
-  callers: they decide soundness. The template pins Midnight's (Filecoin SRS).
+  callers: they decide soundness. The template pins Midnight's own, from `bls_midnight_2p14`
+  (shipped in midnight-transient-crypto 3.1.0, what the proof server and ledger use). Not the
+  Filecoin SRS: a ledger proof does not verify under it.
 
 ## Gas
 
@@ -67,13 +69,13 @@ and firewood (another Rust static library), and the symbols collide.
 
 | Vector | Source | SRS |
 |---|---|---|
-| `poseidon-k6-filecoin` | The proof of the Soroban verifier (dpo2u-stellar-compliance-escrow PR #3, `fixtures/midnight/poseidon/proof.bin`) byte for byte; the key is rebuilt here from the same circuit | Filecoin (Midnight's) |
+| `poseidon-k6-midnight` | The proof of the Soroban verifier (dpo2u-stellar-compliance-escrow, branch `feat/fase-3-travel-rule-gate`, `fixtures/midnight/poseidon/proof.bin`) byte for byte; the key is rebuilt here from the same circuit | Midnight (`bls_midnight_2p14`) |
 | `membership-k12` | zk-stdlib's membership example, proved by `gen-vectors` | INSECURE test SRS (seed in the file) |
 
 The same proof is accepted by the Soroban contract and by this precompile, which is the
 cross-chain check that both read Midnight proofs the same way. Regenerate with
 `cargo run --release --bin gen-vectors` and
-`SRS_DIR=<dir with bls_filecoin_2p19> cargo run --release --bin cross-vectors -- <stellar fixture dir>`.
+`cargo run --release --bin cross-vectors -- <bls_midnight_2p14> <stellar fixture dir>`.
 
 ## Trust model and data protection
 

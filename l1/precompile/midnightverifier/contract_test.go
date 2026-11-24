@@ -280,9 +280,9 @@ func otherParams(t testing.TB, params []byte) []byte {
 }
 
 // TestStellarFixtureProof: the Poseidon proof the Soroban verifier was built against (Stellar
-// thread, Filecoin SRS = Midnight's real [tau]_2) is accepted through the precompile too.
+// thread, Midnight SRS bls_midnight_2p14 = the real [tau]_2) is accepted through the precompile too.
 func TestStellarFixtureProof(t *testing.T) {
-	v := loadVectorFrom(t, "poseidon-k6-filecoin")
+	v := loadVectorFrom(t, "poseidon-k6-midnight")
 	vkHash := VerifyingKeyHash(v.vk)
 	bad := cloneInts(v.publicInputs)
 	bad[0].Xor(bad[0], big.NewInt(1))
