@@ -14,7 +14,7 @@ validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the F
 |---|---|---|
 | Genesis template | `l1/genesis/dpo2u-l1.genesis.template.json` | Template (with `midnightVerifierConfig`); chain not created |
 | ComplianceGate (GE-1..GE-5) | `contracts/l1/DPO2UL1ComplianceGate.sol` | Tested with a mock verifier |
-| C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter |
+| C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter; A4: receives real ICM from the L1 on the local network (Teleporter v1, Warp-verified) |
 | MidnightVerifier (MVE-*) | `l1/precompile/` (precompile at `0x0300…00d2`) | A2: Midnight's own verifier via FFI; tested end to end on a simulated Subnet-EVM chain; accepts the Soroban verifier's proof |
 | CVM test asset + DvP | `contracts/l1/cvm/` | TEST security token that only gate-admitted wallets hold, test BRL, atomic delivery vs payment; run on the local network |
 | Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter, admission switch |
@@ -69,4 +69,4 @@ demo, the PoA validators are DPO2U's, so the ICM signature is as trustworthy as 
 
 ## Next phases
 
-A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 local network: done (`l1/localnet/README.md`); CVM test token with delivery vs payment: done (`contracts/l1/cvm/`); still to do in A3: a real `evaluateTransfer` proof made for an L1 admission context · A4 ICM to the Fuji C-Chain + demo video.
+A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 local network: done (`l1/localnet/README.md`); CVM test token with delivery vs payment: done (`contracts/l1/cvm/`); still to do in A3: a real `evaluateTransfer` proof made for an L1 admission context · A4 ICM: done on the local network (L1 to local C-Chain, `l1/localnet/README.md`); still to do: Fuji (needs the hosted L1 validators) and the demo video.

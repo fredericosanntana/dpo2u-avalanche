@@ -1,6 +1,7 @@
 # DPO2U L1 on a local network (phase A3)
 
-`a3-local-e2e.ts` runs the whole admission path on a real AvalancheGo v1.14.0 node, running the DPO2U VM
+`a3-local-e2e.ts` runs the whole admission path on a real AvalancheGo v1.14.0 network (two nodes, both
+validating the primary network and the DPO2U L1), running the DPO2U VM
 (Subnet-EVM v0.8.0 plus the MidnightVerifier precompile):
 
 1. The Transaction AllowList blocks an unknown wallet.
@@ -122,3 +123,50 @@ after the gate froze the buyer, a second trade could not settle and nothing move
 Data protection (LGPD/GDPR): on chain there are only wallets, amounts and hashes (terms, trade
 confirmation, court-order reference). The person behind a wallet, the KYC file and the Travel
 Rule data stay with the VASP and the issuer.
+
+## ICM to the C-Chain (phase A4, `a4-icm-local-e2e.ts`)
+
+The gate's admissions reach the local C-Chain over ICM (Avalanche Warp + Teleporter). The DPO2U L1
+validators sign them with BLS, and the C-Chain's Warp precompile checks the signature against the L1
+validator set on the P-Chain. The relayer only carries the signed message and is trusted for
+liveness, not for content.
+
+1. TeleporterMessenger v1 (icm-contracts v1.0.9, fetched with `go mod download`, not vendored: Ava
+   Labs Ecosystem License) is deployed at the same address on both chains. Dev key #5 at nonce 0 on
+   each chain; Teleporter requires the same address. On the L1 the Safe first enables that key on
+   both AllowLists (transactions and contract deployment).
+2. The gate is on the L1 and `DPO2UL1VerdictReceiver` is on the C-Chain, pinned to the L1 blockchain
+   ID and the gate address. The Safe registers the destination on the gate.
+3. A Midnight proof admits a wallet on the L1. The gate sends the ADMIT message, `localnet relay`
+   delivers it, and the receiver shows `isAdmitted = true` (seq 1, same policy hash).
+4. Replaying the same signed message is refused by Teleporter ("message already received").
+5. The Safe revokes on the L1. The DROP reaches the C-Chain and the receiver shows `isAdmitted = false`
+   (seq 2).
+
+```sh
+DPO2U_L1_RPC=$(cat l1/precompile/build/localnet-state/rpc-url) \
+DPO2U_CCHAIN_RPC=$(cat l1/precompile/build/localnet-state/cchain-rpc-url) \
+MIDNIGHT_SRS=.../bls_midnight_2p14 npx hardhat run l1/localnet/a4-icm-local-e2e.ts --network dpo2uLocal
+```
+
+`localnet start` also funds dev keys #0, #2 and #5 on the local C-Chain and writes `cchain-rpc-url`.
+`localnet relay <src rpc> <dst rpc> <tx> <teleporter>` (key in `DPO2U_RELAYER_KEY`) stands in for
+icm-relayer. It asks the L1 node for the aggregate signature (`warp_getMessageAggregateSignature`,
+67% quorum) and submits `receiveCrossChainMessage` with the signed message as the Warp predicate.
+
+Why two nodes: on a one-node network tmpnet turns sybil protection off. Every chain then sees an
+empty validator set, so Warp cannot verify anything. With two validators sybil protection stays on.
+Snow k = 1 keeps consensus quick.
+
+Result (2026-11-24):
+
+| Step | Gas |
+|---|---|
+| L1 `admit` (proof check + AllowList + ICM send) | 1,130,796 |
+| C-Chain delivery of ADMIT (Warp check + receiver) | 385,615 |
+| C-Chain delivery of DROP | 311,645 |
+
+Data protection (LGPD/GDPR): the ICM message carries wallet, policy hash, verdict digest, expiry and a
+sequence number. The C-Chain validators are global, so nothing in it identifies a person (art. 33).
+The wallet is in clear because the L1 AllowList works by address. It belongs in the RIPD; see the
+subject v2 proposal for the passport/seal contracts.
