@@ -136,6 +136,55 @@ async function main() {
   console.log(`  subject role: ${await allow.readAllowList(subject.address)}`);
   await expectRevert(subject.sendTransaction({ to: deployer.address, value: 1n }), "revoked wallet");
 
+  step("7. The REAL TravelRuleGate v12 proof (Midnight preview capture) through the gate's Midnight lane");
+  const tdir = path.join(__dirname, "..", "precompile", "testdata", "travel-rule-gate-v12");
+  const realVk = fs.readFileSync(path.join(tdir, "vk.bin"));
+  const realProof = "0x" + fs.readFileSync(path.join(tdir, "proof.bin")).toString("hex");
+  const realStatement: bigint[] = JSON.parse(fs.readFileSync(path.join(tdir, "vector.json"), "utf8")).publicInputs.map((h: string) => BigInt(h));
+  const realVkHash = ethers.keccak256(realVk);
+  if (!(await verifier.isRegistered(realVkHash))) {
+    const r = await (await verifier.connect(deployer).getFunction("registerVerifyingKey")(realVk)).wait();
+    console.log(`  registered evaluateTransfer key ${realVkHash} (${realVk.length} B), gas ${r!.gasUsed}`);
+  }
+  const P = { transferId: 202, status: 208, failReason: 228, policy: 290, root: 311, pepper: 373, provider: 114, validUntil: 353, issuedAt: 394 };
+  const pins = [
+    ...[P.policy, P.root, P.pepper, P.provider].flatMap((i) => [
+      { index: i, value: realStatement[i] },
+      { index: i + 1, value: realStatement[i + 1] },
+    ]),
+    { index: P.status, value: 1n },
+    { index: P.failReason, value: 0n },
+  ];
+  await (
+    await (gate.connect(safe) as any).setMidnightPolicy(
+      1,
+      {
+        vkHash: realVkHash,
+        statementLen: realStatement.length,
+        contextIndex: P.transferId,
+        contextEncoding: 1,
+        validUntilIndex: P.validUntil,
+        issuedAtIndex: P.issuedAt,
+        minIssuedAt: realStatement[P.issuedAt],
+        admissionTtl: 3600,
+        active: true,
+      },
+      pins,
+    )
+  ).wait();
+  console.log(`  precompile verify of the real proof (eth_call): ${await verifier.verify(realVkHash, realProof, realStatement)}`);
+  const captureTransferId = "0x74722d7631322d636170322d3230323631313234543031343031370000000000";
+  console.log(`  gate.checkMidnight(capture transfer_id): ${await (gate as any).checkMidnight(1, captureTransferId, realProof, realStatement)}`);
+  const estimate = await (gate as any).checkMidnight.estimateGas(1, captureTransferId, realProof, realStatement);
+  console.log(`  gas (estimate, incl. calldata for 417 values): ${estimate}`);
+  const fail = [...realStatement];
+  fail[P.status] = 2n;
+  await expectRevert((gate as any).checkMidnight.staticCall(1, captureTransferId, realProof, fail), "verdict FAIL", gate.interface, "PinMismatch");
+  const forged = [...realStatement];
+  forged[P.validUntil] += 1n; // not pinned: only the proof catches it
+  await expectRevert((gate as any).checkMidnight.staticCall(1, captureTransferId, realProof, forged), "statement changed outside the pins", gate.interface, "InvalidProof");
+  await expectRevert((gate.connect(relayer) as any).admitMidnight.staticCall(1, subject.address, 1, realProof, realStatement), "capture not made for this wallet", gate.interface, "ContextMismatch");
+
   console.log("\nA3 local end to end: OK");
 }
 

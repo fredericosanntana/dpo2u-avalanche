@@ -224,23 +224,131 @@ contract DPO2UL1ComplianceGate {
 
         uint64 expiresAt = uint64(block.timestamp) + p.admissionTtl;
         if (expiresAt > validUntil) expiresAt = validUntil;
+        _grant(subject, policyHash, _join(pi, PI_DIGEST), expiresAt);
+    }
 
-        // Effects before the precompile call and the ICM send.
-        Admission storage a = _admissions[subject];
-        bool granted = a.granted;
-        a.expiresAt = expiresAt;
-        a.policyHash = policyHash;
-        a.digest = _join(pi, PI_DIGEST);
+    // ── Midnight statement lane (phase A3) ───────────────────────────────────
+    //
+    // Admission by the REAL statement of a Compact circuit (TravelRuleGate `evaluateTransfer`:
+    // 417 values in v12), the same model as the Stellar escrow gate: the Safe pins, per policy,
+    // the statement length, the values that must appear at fixed positions (verdict PASS, no fail
+    // reason, policy hash, sanctions list root, pepper commitment, provider) and where the
+    // admission context sits. The context binds the proof to this chain, this gate, one wallet
+    // and one nonce: the VASP evaluates on Midnight with `transfer_id = admissionContext(..)`.
 
-        // Only touch wallets with no role: never downgrade or claim an Admin/Manager, and leave
-        // alone a wallet the Safe enabled directly.
-        if (!granted && txAllowList.readAllowList(subject) == ROLE_NONE) {
-            a.granted = true;
-            granted = true;
-            txAllowList.setEnabled(subject);
+    /// @notice Context encodings: one field element, or a Compact `Bytes<32>` (two values:
+    ///         [byte 31, bytes 0..30 little endian]).
+    uint8 public constant CTX_FIELD = 0;
+    uint8 public constant CTX_COMPACT_BYTES32 = 1;
+    uint32 public constant NO_INDEX = type(uint32).max;
+    bytes32 public constant ADMISSION_DOMAIN = keccak256("dpo2u.l1.admission/1");
+
+    struct Pin {
+        uint32 index;
+        uint256 value;
+    }
+
+    struct MidnightPolicy {
+        bytes32 vkHash; // keccak256 of the MidnightVK registered in the precompile
+        uint32 statementLen;
+        uint32 contextIndex;
+        uint8 contextEncoding;
+        uint32 validUntilIndex; // list valid_until (Uint<64>), caps the admission; NO_INDEX = none
+        uint32 issuedAtIndex; // list issued_at (Uint<64>), checked against minIssuedAt; NO_INDEX = none
+        uint64 minIssuedAt;
+        uint64 admissionTtl;
+        bool active;
+    }
+
+    error BadMidnightPolicy();
+    error PinMismatch();
+    error ContextMismatch();
+
+    event MidnightPolicySet(uint32 indexed policyId, bytes32 vkHash, uint32 statementLen, bool active);
+
+    mapping(uint32 => MidnightPolicy) public midnightPolicies;
+    mapping(uint32 => Pin[]) private _midnightPins;
+
+    function setMidnightPolicy(uint32 policyId, MidnightPolicy calldata p, Pin[] calldata pins) external onlyAdmin {
+        if (p.active && (p.vkHash == bytes32(0) || p.admissionTtl == 0)) revert BadMidnightPolicy();
+        uint32 width = _ctxWidth(p.contextEncoding);
+        if (uint256(p.contextIndex) + width > p.statementLen) revert BadMidnightPolicy();
+        if (p.validUntilIndex != NO_INDEX && p.validUntilIndex >= p.statementLen) revert BadMidnightPolicy();
+        if (p.issuedAtIndex != NO_INDEX && p.issuedAtIndex >= p.statementLen) revert BadMidnightPolicy();
+        delete _midnightPins[policyId];
+        for (uint256 i = 0; i < pins.length; ++i) {
+            uint32 at = pins[i].index;
+            if (at >= p.statementLen || (at >= p.contextIndex && at < p.contextIndex + width)) {
+                revert BadMidnightPolicy();
+            }
+            _midnightPins[policyId].push(pins[i]);
         }
-        emit Admitted(subject, policyHash, a.digest, expiresAt, granted);
-        _broadcast(MSG_ADMIT, subject, policyHash, a.digest, expiresAt);
+        midnightPolicies[policyId] = p;
+        emit MidnightPolicySet(policyId, p.vkHash, p.statementLen, p.active);
+    }
+
+    function midnightPins(uint32 policyId) external view returns (Pin[] memory) {
+        return _midnightPins[policyId];
+    }
+
+    /// @notice The `transfer_id` a VASP uses on Midnight to admit `subject` here.
+    function admissionContext(address subject, uint256 nonce) public view returns (bytes32) {
+        return keccak256(abi.encode(ADMISSION_DOMAIN, block.chainid, address(this), subject, nonce));
+    }
+
+    /// @notice Checks a Midnight statement against a policy and a context, without admitting
+    ///         anyone (relayer pre-flight; same checks as admitMidnight up to the context).
+    function checkMidnight(uint32 policyId, bytes32 context, bytes calldata proof, uint256[] calldata statement)
+        public
+        view
+        returns (bool)
+    {
+        MidnightPolicy memory p = midnightPolicies[policyId];
+        if (!p.active) revert PolicyNotActive();
+        if (statement.length != p.statementLen) revert BadPublicInputs();
+        Pin[] storage pins = _midnightPins[policyId];
+        for (uint256 i = 0; i < pins.length; ++i) {
+            if (statement[pins[i].index] != pins[i].value) revert PinMismatch();
+        }
+        if (p.contextEncoding == CTX_FIELD) {
+            if (statement[p.contextIndex] != uint256(context)) revert ContextMismatch();
+        } else {
+            (uint256 last, uint256 rest) = _compactBytes32(context);
+            if (statement[p.contextIndex] != last || statement[p.contextIndex + 1] != rest) revert ContextMismatch();
+        }
+        if (p.issuedAtIndex != NO_INDEX && statement[p.issuedAtIndex] < p.minIssuedAt) revert StaleList();
+        if (p.validUntilIndex != NO_INDEX && block.timestamp > statement[p.validUntilIndex]) revert ListExpired();
+        if (!verifier.verify(p.vkHash, proof, statement)) revert InvalidProof();
+        return true;
+    }
+
+    /// @notice Anyone may submit (the relayer only transports): the proof decides.
+    function admitMidnight(
+        uint32 policyId,
+        address subject,
+        uint256 nonce,
+        bytes calldata proof,
+        uint256[] calldata statement
+    ) external {
+        if (subject == address(0)) revert ZeroAddress();
+        if (frozen[subject]) revert SubjectFrozen();
+        bytes32 context = admissionContext(subject, nonce);
+        if (nonceUsed[context]) revert NonceUsed();
+        checkMidnight(policyId, context, proof, statement);
+        nonceUsed[context] = true;
+
+        MidnightPolicy memory p = midnightPolicies[policyId];
+        uint64 expiresAt = uint64(block.timestamp) + p.admissionTtl;
+        if (p.validUntilIndex != NO_INDEX && expiresAt > statement[p.validUntilIndex]) {
+            expiresAt = uint64(statement[p.validUntilIndex]);
+        }
+        // policyHash: the lane and policy id; digest: the whole proven statement.
+        _grant(
+            subject,
+            keccak256(abi.encode("dpo2u.l1.midnight-policy", policyId)),
+            keccak256(abi.encodePacked(statement)),
+            expiresAt
+        );
     }
 
     /// @notice GE-3: anyone may remove an admission once it has expired (watcher job).
@@ -271,6 +379,39 @@ contract DPO2UL1ComplianceGate {
     }
 
     // ── Internal ────────────────────────────────────────────────────────────
+
+    function _grant(address subject, bytes32 policyHash, bytes32 digest, uint64 expiresAt) internal {
+        // Effects before the precompile call and the ICM send.
+        Admission storage a = _admissions[subject];
+        bool granted = a.granted;
+        a.expiresAt = expiresAt;
+        a.policyHash = policyHash;
+        a.digest = digest;
+
+        // Only touch wallets with no role: never downgrade or claim an Admin/Manager, and leave
+        // alone a wallet the Safe enabled directly.
+        if (!granted && txAllowList.readAllowList(subject) == ROLE_NONE) {
+            a.granted = true;
+            granted = true;
+            txAllowList.setEnabled(subject);
+        }
+        emit Admitted(subject, policyHash, digest, expiresAt, granted);
+        _broadcast(MSG_ADMIT, subject, policyHash, digest, expiresAt);
+    }
+
+    function _ctxWidth(uint8 encoding) internal pure returns (uint32) {
+        if (encoding == CTX_FIELD) return 1;
+        if (encoding == CTX_COMPACT_BYTES32) return 2;
+        revert BadMidnightPolicy();
+    }
+
+    /// @dev Compact `Bytes<32>` as statement values: [b[31], sum(b[i] * 256^i) for i < 31].
+    function _compactBytes32(bytes32 b) internal pure returns (uint256 last, uint256 rest) {
+        last = uint8(b[31]);
+        for (uint256 i = 0; i < 31; ++i) {
+            rest |= uint256(uint8(b[i])) << (8 * i);
+        }
+    }
 
     function _drop(address subject, uint8 cause, bytes32 reasonHash) internal {
         Admission memory a = _admissions[subject];

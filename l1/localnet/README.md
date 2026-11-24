@@ -11,6 +11,11 @@
    another chain (`WrongChain`) are refused.
 5. The admitted wallet can now transact.
 6. The Safe revokes it, and the VM blocks it again.
+7. The **real TravelRuleGate v12 `evaluateTransfer` proof** from a Midnight preview capture goes
+   through the gate's Midnight statement lane. The precompile verifies it, and
+   `checkMidnight(policy, capture transfer_id, proof, statement)` returns true. A FAIL verdict
+   (`PinMismatch`), a statement changed outside the pins (`InvalidProof`) and an admission for a
+   wallet the capture was not made for (`ContextMismatch`) are refused.
 
 ## Run it
 
@@ -46,10 +51,49 @@ chain are for local use only.
 |---|---|
 | `registerVerifyingKey` (1,229 B key) | 1,033,177 |
 | `admit` (gate + precompile verify + AllowList) | ~987,800 |
+| `registerVerifyingKey` (real `evaluateTransfer` key, 2,285 B) | 1,718,449 |
+| `checkMidnight`, real proof, 417 statement values (estimate, incl. calldata) | 2,099,001 |
 
 Both fit in the 15M block gas limit.
 
-## What the proof is, and is not
+## The Midnight statement lane
+
+`admitMidnight(policyId, subject, nonce, proof, statement)` takes the circuit's real statement,
+following the same model as the Stellar escrow gate. The Safe pins the following per policy, and
+any other change is caught by the proof:
+
+- the statement length;
+- the values at fixed positions:
+  - verdict `status = 1` (PASS) and `fail_reason = 0`;
+  - policy hash;
+  - sanctions list root;
+  - pepper commitment;
+  - provider;
+- the list's `issued_at` (checked against `minIssuedAt`, the stale-list fix) and `valid_until`
+  (which caps the admission).
+
+Positions are 0-based. A Compact `Bytes<32>` is two values, `[byte 31, bytes 0..30 LE]`.
+Statement map for v12:
+
+| Value | Position |
+|---|---|
+| `transfer_id` | 202 |
+| `status` | 208 |
+| `fail_reason` | 228 |
+| policy hash | 290 |
+| list root | 311 |
+| pepper commitment | 373 |
+| provider | 114 |
+| `valid_until` | 353 |
+| `issued_at` | 394 |
+
+The wallet is bound through `transfer_id`. The VASP evaluates on Midnight with
+`transfer_id = gate.admissionContext(subject, nonce)`, which is
+`keccak256(domain, chain id, gate, subject, nonce)`. The capture used here was made with another
+`transfer_id`, so it can be checked but cannot admit a wallet. Admitting one with a real proof
+needs a new evaluate on Midnight preview with that context.
+
+## What the layout-v0 proof is, and is not
 
 `prove-gate-v0` is a **test circuit**. It has the gate's 15 public inputs (layout v0) and only
 constrains `pass == 1`. It is a genuine Midnight proof (zk-stdlib 2.4.0, Midnight SRS), so this run

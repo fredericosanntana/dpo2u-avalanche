@@ -17,7 +17,7 @@ validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the F
 | C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter |
 | MidnightVerifier (MVE-*) | `l1/precompile/` (precompile at `0x0300…00d2`) | A2: Midnight's own verifier via FFI; tested end to end on a simulated Subnet-EVM chain; accepts the Soroban verifier's proof |
 | Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter |
-| Local network (A3) | `l1/precompile/localnet`, `l1/localnet/` | The gate admits and revokes a wallet on a real AvalancheGo node, using a Midnight proof checked by the precompile (test circuit) |
+| Local network (A3) | `l1/precompile/localnet`, `l1/localnet/` | The gate admits and revokes a wallet on a real AvalancheGo node, using a Midnight proof checked by the precompile (test circuit); the real TravelRuleGate v12 proof passes the gate's Midnight statement lane |
 
 Nothing is deployed. No keys, no AVAX spent.
 
@@ -39,6 +39,12 @@ Nothing is deployed. No keys, no AVAX spent.
 
 `__PLACEHOLDER__` values: `__CHAIN_ID__` (pick an unused EVM chain id), `__SAFE__`, `__DEPLOYER__`,
 `__ICM_RELAYER__`, and the same two addresses without `0x` in `alloc`. `__WARP_ACTIVATION_UNIX__` (a number, unquoted): the chain creation time, since Subnet-EVM refuses a Warp activation before Durango. Gas token has no value.
+
+## Midnight statement lane (A3)
+
+`admitMidnight` takes the real `evaluateTransfer` statement (417 values in v12). It uses pinned
+positions and binds the wallet through `transfer_id = admissionContext(subject, nonce)`; see
+`l1/localnet/README.md`. Layout v0 below stays for the test circuit.
 
 ## Public input layout v0 (provisional)
 
