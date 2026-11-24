@@ -74,3 +74,12 @@ contract MockTeleporterMessenger is ITeleporterMessenger {
         ITeleporterReceiver(s.destinationAddress).receiveTeleporterMessage(sourceBlockchainID, s.origin, s.message);
     }
 }
+
+/// @notice Admission switch for unit tests of gate-restricted assets.
+contract MockAdmissionGate {
+    mapping(address => bool) public isAdmitted;
+
+    function set(address a, bool v) external {
+        isAdmitted[a] = v;
+    }
+}
