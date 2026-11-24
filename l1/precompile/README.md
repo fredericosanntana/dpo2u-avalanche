@@ -70,7 +70,7 @@ and firewood (another Rust static library), and the symbols collide.
 | Vector | Source | SRS |
 |---|---|---|
 | `poseidon-k6-midnight` | The proof of the Soroban verifier (dpo2u-stellar-compliance-escrow, branch `feat/fase-3-travel-rule-gate`, `fixtures/midnight/poseidon/proof.bin`) byte for byte; the key is rebuilt here from the same circuit | Midnight (`bls_midnight_2p14`) |
-| `zkir-hash`, `escrow-context` | Compact circuits (ZKIR v2) proved by the **Midnight ledger's own prover** (`Zkir::prove`, midnight-transient-crypto 3.1.0) in the Stellar pipeline; the key is the `MidnightVK` inside the ledger's `VerifierKey` (`ledger.verifier`). Statements: `[binding_input, transient_hash]` and `[binding_input, commitment, context]` | Midnight |
+| `zkir-hash`, `escrow-context` | Compact circuits (ZKIR v3, midnight-zkir 3.2.1 = compactc 0.36) proved by the **Midnight ledger's own prover** (`Zkir::prove`, midnight-transient-crypto 3.1.0) in the Stellar pipeline; the key is the `MidnightVK` inside the ledger's `VerifierKey` (`ledger.verifier`). Statements: `[binding_input, transient_hash]` and `[binding_input, commitment, context]` | Midnight |
 | `membership-k12` | zk-stdlib's membership example, proved by `gen-vectors` | INSECURE test SRS (seed in the file) |
 
 The same proof is accepted by the Soroban contract and by this precompile, which is the

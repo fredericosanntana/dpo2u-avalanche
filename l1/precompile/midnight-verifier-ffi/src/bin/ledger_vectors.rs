@@ -55,7 +55,7 @@ fn main() {
     let mut meta = fs::File::create(out.join("vector.json")).unwrap();
     write!(
         meta,
-        "{{\n  \"relation\": \"Compact circuit {name} (ZKIR v2), proved with the ledger prover (Zkir::prove, midnight-transient-crypto 3.1.0)\",\n  \"source\": \"dpo2u-stellar-compliance-escrow fixtures/midnight/{name} (branch feat/fase-3-travel-rule-gate), proof byte for byte; vk = MidnightVK inside ledger.verifier\",\n  \"srs\": \"Midnight bls_midnight_2p14\",\n  \"publicInputs\": [\"{}\"],\n  \"sizes\": {{ \"params\": {}, \"vk\": {}, \"proof\": {} }}\n}}\n",
+        "{{\n  \"relation\": \"Compact circuit {name} (ZKIR v3, midnight-zkir 3.2.1 = compactc 0.36), proved with the ledger prover (Zkir::prove, midnight-transient-crypto 3.1.0)\",\n  \"source\": \"dpo2u-stellar-compliance-escrow fixtures/midnight/{name} (branch feat/fase-3-travel-rule-gate @ f3d41d0), proof byte for byte; vk = MidnightVK inside ledger.verifier\",\n  \"srs\": \"Midnight bls_midnight_2p14\",\n  \"publicInputs\": [\"{}\"],\n  \"sizes\": {{ \"params\": {}, \"vk\": {}, \"proof\": {} }}\n}}\n",
         pis.join("\", \""),
         params.len(),
         vk.len(),
