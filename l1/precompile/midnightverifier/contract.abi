@@ -1,0 +1,6 @@
+[
+ {"type":"function","name":"registerVerifyingKey","stateMutability":"nonpayable","inputs":[{"name":"vk","type":"bytes"}],"outputs":[{"name":"vkHash","type":"bytes32"}]},
+ {"type":"function","name":"isRegistered","stateMutability":"view","inputs":[{"name":"vkHash","type":"bytes32"}],"outputs":[{"name":"registered","type":"bool"}]},
+ {"type":"function","name":"verify","stateMutability":"view","inputs":[{"name":"vkHash","type":"bytes32"},{"name":"proof","type":"bytes"},{"name":"publicInputs","type":"uint256[]"}],"outputs":[{"name":"valid","type":"bool"}]},
+ {"type":"event","name":"VerifyingKeyRegistered","anonymous":false,"inputs":[{"name":"vkHash","type":"bytes32","indexed":true},{"name":"size","type":"uint256","indexed":false}]}
+]

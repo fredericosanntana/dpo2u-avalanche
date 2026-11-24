@@ -1,0 +1,9 @@
+{
+  "relation": "Poseidon preimage (dpo2u-stellar-compliance-escrow tools/midnight-export)",
+  "midnightZkStdlib": "2.4.0 (midnight-proofs 0.8.2, the ledger stack)",
+  "k": 6,
+  "srs": "Midnight bls_midnight_2p14 (midnight-transient-crypto 3.1.0 static/), downsized to k=6",
+  "proofSource": "dpo2u-stellar-compliance-escrow fixtures/midnight/poseidon/proof.bin (branch feat/fase-3-travel-rule-gate), byte for byte",
+  "publicInputs": ["0x5bc80c2903b88ec11dbfd6aea02fa8405d5e5a12dda02dd18e7d1a0e7ac8e43c"],
+  "sizes": { "params": 96, "vk": 1325, "proof": 2912 }
+}

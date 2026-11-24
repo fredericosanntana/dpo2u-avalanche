@@ -1,0 +1,7 @@
+{
+  "relation": "Compact circuit zkir-hash (ZKIR v3, midnight-zkir 3.2.1 = compactc 0.36), proved with the ledger prover (Zkir::prove, midnight-transient-crypto 3.1.0)",
+  "source": "dpo2u-stellar-compliance-escrow fixtures/midnight/zkir-hash (branch feat/fase-3-travel-rule-gate @ f3d41d0), proof byte for byte; vk = MidnightVK inside ledger.verifier",
+  "srs": "Midnight bls_midnight_2p14",
+  "publicInputs": ["0x000000000000000000000000000000000000000000000000000000000000002a", "0x2416a898714a84833f3690e09279c3b175418c956399a8c8928b8d1d4150ab7b"],
+  "sizes": { "params": 96, "vk": 1325, "proof": 3824 }
+}
