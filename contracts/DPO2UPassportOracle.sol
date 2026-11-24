@@ -203,7 +203,8 @@ contract DPO2UPassportOracle {
         return p.status == Status.VALID && block.timestamp < p.expiresAt && uint8(p.tier) >= uint8(minTier);
     }
 
-    /// @notice Same question for an EVM account on this chain (subject = H(CAIP-10)).
+    /// @notice Same question for an EVM account on this chain (subject v1 = H(CAIP-10)).
+    /// @dev DEPRECATED (v1, unkeyed: anyone can link it to the wallet). Use `isAccountValidV2`.
     function isAccountValid(address account, bytes32 packId, Tier minTier) external view returns (bool) {
         return isValid(subjectOf(account), packId, minTier);
     }
@@ -219,8 +220,45 @@ contract DPO2UPassportOracle {
 
     /// @notice keccak256("eip155:<chainid>:<lowercase 0x address>") — the same subject the
     ///         DPO2U gateway writes for an EVM account (pilot-gateway avalanche-driver).
+    /// @dev DEPRECATED (v1, unkeyed). Kept only to read records written before subject v2.
     function subjectOf(address account) public view returns (bytes32) {
         return keccak256(abi.encodePacked("eip155:", _toDecimal(block.chainid), ":", _toLowerHex(account)));
+    }
+
+    // ── Subject v2 (keyed, LGPD) ────────────────────────────────────────────
+    //
+    // v1 (`subjectOf`) is keccak256 of the CAIP-10 account: anyone who knows a wallet
+    // recomputes it and reads that wallet's seals and passports, so it is pseudonymous data
+    // that is trivially reversible (LGPD art. 12; EDPB Guidelines 02/2025 par. 52). v2 adds
+    // a per-account salt the holder keeps:
+    //   salt    = HMAC-SHA256(pepper, "dpo2u.subject-salt/2|eip155:<chainid>:<lowercase addr>")
+    //   subject = keccak256(abi.encode(SUBJECT_V2_DOMAIN, chainid, account, salt))
+    // The pepper stays with DPO2U / the VASP (gateway); only the holder and the VASP get the
+    // salt. Someone with only the wallet cannot find or link its records. The holder discloses
+    // the salt to a counterparty (Travel Rule message, eth_call), or on chain when it calls a
+    // gated contract itself, and that use reveals the link for that account only.
+    // `pepperCommit` = keccak256(pepper) lets an auditor check which pepper a run used.
+
+    bytes32 public pepperCommit;
+    uint32 public pepperEpoch;
+
+    bytes32 public constant SUBJECT_V2_DOMAIN = keccak256("dpo2u.subject/2");
+
+    event PepperCommitSet(uint32 indexed epoch, bytes32 commit);
+
+    function setPepperCommit(bytes32 commit) external onlyAdmin {
+        if (commit == bytes32(0)) revert ZeroValue();
+        pepperCommit = commit;
+        emit PepperCommitSet(++pepperEpoch, commit);
+    }
+
+    function subjectOfV2(address account, bytes32 salt) public view returns (bytes32) {
+        return keccak256(abi.encode(SUBJECT_V2_DOMAIN, block.chainid, account, salt));
+    }
+
+    /// @notice The oracle question for an EVM account, with the holder's salt (subject v2).
+    function isAccountValidV2(address account, bytes32 salt, bytes32 packId, Tier minTier) external view returns (bool) {
+        return isValid(subjectOfV2(account, salt), packId, minTier);
     }
 
     // ── Internal ────────────────────────────────────────────────────────────

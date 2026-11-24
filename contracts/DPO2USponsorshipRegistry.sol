@@ -42,6 +42,7 @@ contract DPO2USponsorshipRegistry {
         uint64 updatedAt;
         bytes32 accountableDirectorHash; // H(director identity), art. 42
         bytes32[] requiredPackIds;
+        bytes32 partnerSubject; // subject v2 of the partner, fixed at its first consent
     }
 
     DPO2UPassportOracle public immutable oracle;
@@ -132,10 +133,16 @@ contract DPO2USponsorshipRegistry {
 
     /// @notice Only the partner consents to share its evidence. Activates only with a
     ///         qualifying passport right now. Also re-consents after a revocation.
-    function grantConsent(uint256 id) external {
+    /// @param salt the partner's subject-v2 salt (from the gateway). Passing it here is the
+    ///        partner disclosing, by its own act, the link between its wallet and its passports
+    ///        to this sponsorship; nobody else can make that link from the wallet alone.
+    function grantConsent(uint256 id, bytes32 salt) external {
         Sponsorship storage s = _require(id);
         if (msg.sender != s.partner) revert NotAuthorized();
         if (s.status != Status.PROPOSED && s.status != Status.CONSENT_REVOKED) revert InvalidState();
+        bytes32 subject = oracle.subjectOfV2(msg.sender, salt);
+        if (s.partnerSubject != bytes32(0) && s.partnerSubject != subject) revert NotAuthorized();
+        s.partnerSubject = subject;
         if (!_passportsQualify(s)) revert PassportNotQualifying();
         s.status = Status.ACTIVE;
         s.updatedAt = uint64(block.timestamp);
@@ -182,6 +189,6 @@ contract DPO2USponsorshipRegistry {
     }
 
     function _passportsQualify(Sponsorship storage s) private view returns (bool) {
-        return oracle.isValidAll(oracle.subjectOf(s.partner), s.requiredPackIds, s.minTier);
+        return s.partnerSubject != bytes32(0) && oracle.isValidAll(s.partnerSubject, s.requiredPackIds, s.minTier);
     }
 }

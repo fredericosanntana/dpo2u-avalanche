@@ -2,6 +2,9 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
+// Subject-v2 salt the gateway would give each holder; any 32 bytes in tests.
+const SALT = (who: string) => ethers.keccak256(ethers.toUtf8Bytes(`salt:${who.toLowerCase()}`));
+
 const PASS = 1, FAIL = 2, REVIEW = 3;
 const MACHINE = 0;
 const T = { NONE: 0, TIER1_MACHINE_ONLY: 1, TIER1: 2, TIER2: 3, TIER3: 4 };
@@ -189,7 +192,7 @@ describe(`PassportGatedSettlement (example consumer) [${MODE}]`, () => {
     const desk = await (await ethers.getContractFactory("PassportGatedSettlement")).deploy(await oracle.getAddress(), PACK_ID, T.TIER1);
 
     const passFor = async (who: string, tag: string, days = 365) => {
-      const subject = await oracle.subjectOf(who);
+      const subject = await oracle.subjectOfV2(who, SALT(who));
       await reg.connect(gateway).registerAttestation(UC, id(`run-${tag}`), subject, PASS, MACHINE, id("m"), BigInt((await time.latest()) + 90 * DAY));
       await oracle.connect(issuer).issuePassport(subject, PACK_ID, PACK_HASH, T.TIER1, BigInt((await time.latest()) + days * DAY), id(`pp-${tag}`), UC, id(`run-${tag}`));
     };
@@ -197,16 +200,16 @@ describe(`PassportGatedSettlement (example consumer) [${MODE}]`, () => {
     await passFor(bob.address, "bob", 31);
 
     const one = ethers.parseEther("1");
-    await expect(desk.connect(alice).settle(bob.address, { value: one })).to.changeEtherBalances([alice, bob], [-one, one]);
-    await expect(desk.connect(alice).settle(carol.address, { value: one })).to.be.revertedWithCustomError(desk, "PayeeNotCompliant");
-    await expect(desk.connect(carol).settle(bob.address, { value: one })).to.be.revertedWithCustomError(desk, "PayerNotCompliant");
+    await expect(desk.connect(alice).settle(bob.address, SALT(alice.address), SALT(bob.address), { value: one })).to.changeEtherBalances([alice, bob], [-one, one]);
+    await expect(desk.connect(alice).settle(carol.address, SALT(alice.address), SALT(carol.address), { value: one })).to.be.revertedWithCustomError(desk, "PayeeNotCompliant");
+    await expect(desk.connect(carol).settle(bob.address, SALT(carol.address), SALT(bob.address), { value: one })).to.be.revertedWithCustomError(desk, "PayerNotCompliant");
 
-    await oracle.connect(issuer).suspendPassport(await oracle.subjectOf(alice.address), PACK_ID, id("r"));
-    await expect(desk.connect(alice).settle(bob.address, { value: one })).to.be.revertedWithCustomError(desk, "PayerNotCompliant");
+    await oracle.connect(issuer).suspendPassport(await oracle.subjectOfV2(alice.address, SALT(alice.address)), PACK_ID, id("r"));
+    await expect(desk.connect(alice).settle(bob.address, SALT(alice.address), SALT(bob.address), { value: one })).to.be.revertedWithCustomError(desk, "PayerNotCompliant");
 
     await passFor(alice.address, "alice-2");
     await time.increase(32 * DAY); // bob's 31-day passport lapses
-    await expect(desk.connect(alice).settle(bob.address, { value: one })).to.be.revertedWithCustomError(desk, "PayeeNotCompliant");
+    await expect(desk.connect(alice).settle(bob.address, SALT(alice.address), SALT(bob.address), { value: one })).to.be.revertedWithCustomError(desk, "PayeeNotCompliant");
   });
 });
 }

@@ -13,6 +13,8 @@ const UC = id("psav_partner_br_v1");
 const PACK_ID = id("psav-partner-br@1.0.0");
 const PACK_HASH = "0x5098e1806e2a918da1aa7f1db39c0b4e41e022d2d7bad6abcdc511b6ddddab86";
 const DIRECTOR = id("director:cpf-hash");
+// Subject-v2 salt the gateway would give each holder (HMAC of the pepper); any 32 bytes here.
+const SALT = (who: string) => id(`salt:${who.toLowerCase()}`);
 
 describe("DPO2USponsorshipRegistry", () => {
   async function deploy() {
@@ -27,9 +29,9 @@ describe("DPO2USponsorshipRegistry", () => {
     return { reg, oracle, sp, admin, gateway, issuer, spsav, partner, other };
   }
 
-  // Seal + passport for `who`, the way the gateway would (subject = oracle.subjectOf).
+  // Seal + passport for `who`, the way the gateway would (subject v2 = oracle.subjectOfV2(wallet, salt)).
   async function passport(f: any, who: string, tier = T.TIER2, days = 31, tag = "1") {
-    const subject = await f.oracle.subjectOf(who);
+    const subject = await f.oracle.subjectOfV2(who, SALT(who));
     const ev = id(`run-${who}-${tag}`);
     const now = await time.latest();
     await f.reg.connect(f.gateway).registerAttestation(UC, ev, subject, PASS, MACHINE, id("meta"), BigInt(now + 90 * DAY));
@@ -49,7 +51,7 @@ describe("DPO2USponsorshipRegistry", () => {
       .withArgs(1, f.spsav.address, f.partner.address, [PACK_ID], T.TIER1, DIRECTOR);
     expect(await f.sp.isActive(1)).to.equal(false);
     await passport(f, f.partner.address);
-    await expect(f.sp.connect(f.partner).grantConsent(1)).to.emit(f.sp, "ConsentGranted").withArgs(1, f.partner.address);
+    await expect(f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address))).to.emit(f.sp, "ConsentGranted").withArgs(1, f.partner.address);
     expect(await f.sp.isActive(1)).to.equal(true);
     const s = await f.sp.getSponsorship(1);
     expect(s.status).to.equal(S.ACTIVE);
@@ -60,32 +62,32 @@ describe("DPO2USponsorshipRegistry", () => {
   it("consent needs a passport for every required pack at minTier", async () => {
     const f = await deploy();
     await propose(f, T.TIER3);
-    await expect(f.sp.connect(f.partner).grantConsent(1)).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
+    await expect(f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
     await passport(f, f.partner.address, T.TIER2);
-    await expect(f.sp.connect(f.partner).grantConsent(1)).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
+    await expect(f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
     await f.sp.connect(f.spsav).propose(f.partner.address, [PACK_ID, id("psav-safeguard-br@1.1.0")], T.TIER1, DIRECTOR);
-    await expect(f.sp.connect(f.partner).grantConsent(2)).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
+    await expect(f.sp.connect(f.partner).grantConsent(2, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
   });
 
   it("only the partner consents or revokes; consent can be granted again after revoking", async () => {
     const f = await deploy();
     await propose(f);
     await passport(f, f.partner.address);
-    await expect(f.sp.connect(f.spsav).grantConsent(1)).to.be.revertedWithCustomError(f.sp, "NotAuthorized");
-    await f.sp.connect(f.partner).grantConsent(1);
+    await expect(f.sp.connect(f.spsav).grantConsent(1, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "NotAuthorized");
+    await f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address));
     await expect(f.sp.connect(f.spsav).revokeConsent(1)).to.be.revertedWithCustomError(f.sp, "NotAuthorized");
     await expect(f.sp.connect(f.partner).revokeConsent(1)).to.emit(f.sp, "ConsentRevoked");
     expect(await f.sp.isActive(1)).to.equal(false);
-    await f.sp.connect(f.partner).grantConsent(1);
+    await f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address));
     expect(await f.sp.isActive(1)).to.equal(true);
-    await expect(f.sp.connect(f.partner).grantConsent(1)).to.be.revertedWithCustomError(f.sp, "InvalidState");
+    await expect(f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "InvalidState");
   });
 
   it("passport suspension or expiry turns the sponsorship off in the same block (no relayer)", async () => {
     const f = await deploy();
     await propose(f);
     const subject = await passport(f, f.partner.address, T.TIER2, 31);
-    await f.sp.connect(f.partner).grantConsent(1);
+    await f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address));
     expect(await f.sp.isActive(1)).to.equal(true);
     await f.oracle.connect(f.issuer).suspendPassport(subject, PACK_ID, id("kyb finding"));
     expect(await f.sp.isActive(1)).to.equal(false);
@@ -93,7 +95,7 @@ describe("DPO2USponsorshipRegistry", () => {
     const g = await deploy();
     await propose(g);
     await passport(g, g.partner.address, T.TIER2, 31);
-    await g.sp.connect(g.partner).grantConsent(1);
+    await g.sp.connect(g.partner).grantConsent(1, SALT(g.partner.address));
     await time.increase(32 * DAY);
     expect(await g.sp.isActive(1)).to.equal(false);
   });
@@ -102,7 +104,7 @@ describe("DPO2USponsorshipRegistry", () => {
     const f = await deploy();
     await propose(f);
     await passport(f, f.partner.address);
-    await f.sp.connect(f.partner).grantConsent(1);
+    await f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address));
     await f.sp.setLicensedSponsor(f.spsav.address, false);
     expect(await f.sp.isActive(1)).to.equal(false);
     await expect(f.sp.connect(f.other).propose(f.partner.address, [PACK_ID], T.TIER1, DIRECTOR)).to.be.revertedWithCustomError(f.sp, "NotLicensedSponsor");
@@ -114,7 +116,7 @@ describe("DPO2USponsorshipRegistry", () => {
     await expect(f.sp.connect(f.other).end(1, id("x"))).to.be.revertedWithCustomError(f.sp, "NotAuthorized");
     await expect(f.sp.connect(f.spsav).end(1, id("contract terminated"))).to.emit(f.sp, "SponsorshipEnded");
     await passport(f, f.partner.address);
-    await expect(f.sp.connect(f.partner).grantConsent(1)).to.be.revertedWithCustomError(f.sp, "InvalidState");
+    await expect(f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address))).to.be.revertedWithCustomError(f.sp, "InvalidState");
     await expect(f.sp.end(1, id("y"))).to.be.revertedWithCustomError(f.sp, "InvalidState");
   });
 
@@ -138,5 +140,37 @@ describe("DPO2USponsorshipRegistry", () => {
     await f.sp.connect(f.other).acceptAdmin();
     expect(await f.sp.admin()).to.equal(f.other.address);
     await expect(f.sp.setLicensedSponsor(f.spsav.address, false)).to.be.revertedWithCustomError(f.sp, "AdminOnly");
+  });
+
+  it("subject v2: the wallet alone does not find the passport; a wrong salt cannot consent", async () => {
+    const f = await deploy();
+    const subject = await passport(f, f.partner.address);
+    expect(subject).to.not.equal(await f.oracle.subjectOf(f.partner.address)); // v1 lookup finds nothing
+    expect(await f.oracle.isAccountValid(f.partner.address, PACK_ID, T.TIER1)).to.equal(false);
+    expect(await f.oracle.isAccountValidV2(f.partner.address, SALT(f.partner.address), PACK_ID, T.TIER1)).to.equal(true);
+    await propose(f);
+    await expect(f.sp.connect(f.partner).grantConsent(1, id("wrong"))).to.be.revertedWithCustomError(f.sp, "PassportNotQualifying");
+    await f.sp.connect(f.partner).grantConsent(1, SALT(f.partner.address));
+    expect((await f.sp.getSponsorship(1)).partnerSubject).to.equal(subject);
+    await f.sp.connect(f.partner).revokeConsent(1);
+    // Re-consent must use the same subject.
+    await expect(f.sp.connect(f.partner).grantConsent(1, id("other"))).to.be.revertedWithCustomError(f.sp, "NotAuthorized");
+  });
+
+  it("pepper commitment: admin-only, versioned", async () => {
+    const f = await deploy();
+    const c = id("pepper-commit-1");
+    await expect(f.oracle.connect(f.other).setPepperCommit(c)).to.be.revertedWithCustomError(f.oracle, "AdminOnly");
+    await expect(f.oracle.setPepperCommit(c)).to.emit(f.oracle, "PepperCommitSet").withArgs(1, c);
+    expect(await f.oracle.pepperCommit()).to.equal(c);
+    expect(await f.oracle.pepperEpoch()).to.equal(1);
+  });
+
+  it("subjectOfV2 matches the gateway (cross vector: pepper 0x11..11, chainid 31337)", async () => {
+    const f = await deploy();
+    const salt = "0x90a3e1a081f7d44844e2b6871a5774cb8f62e90319b7cb4282ff88dd0439a51e";
+    expect(await f.oracle.subjectOfV2("0x000000000000000000000000000000000000dEaD", salt)).to.equal(
+      "0x39b2d1598a61a469b76dd208b90187c042c72bb74f1966942f215624e49d4f5d",
+    );
   });
 });
