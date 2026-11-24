@@ -35,6 +35,10 @@ path = "src/bin/cross_vectors.rs"
 name = "ledger-vectors"
 path = "src/bin/ledger_vectors.rs"
 
+[[bin]]
+name = "prove-gate-v0"
+path = "src/bin/prove_gate_v0.rs"
+
 [profile.release]
 opt-level = 3
 lto = "thin"

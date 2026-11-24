@@ -1,5 +1,5 @@
 {
-  "_comment": "DPO2U L1 (Subnet-EVM) genesis template, phase A1. Replace every __PLACEHOLDER__ before creating the chain; see l1/README.md. Safe = the L1 Safe 2-of-3 (VPS, desktop, phone). The ComplianceGate is not in the genesis: the Safe makes it a Manager of the Transaction AllowList after deploying it. midnightVerifierConfig (phase A2) needs the DPO2U VM build (l1/precompile) and pins Midnight's KZG [tau]_2 (Midnight SRS bls_midnight_2p14, not Filecoin).",
+  "_comment": "DPO2U L1 (Subnet-EVM) genesis template, phase A1. Replace every __PLACEHOLDER__ before creating the chain; see l1/README.md. Safe = the L1 Safe 2-of-3 (VPS, desktop, phone). The ComplianceGate is not in the genesis: the Safe makes it a Manager of the Transaction AllowList after deploying it. midnightVerifierConfig (phase A2) needs the DPO2U VM build (l1/precompile) and pins Midnight's KZG [tau]_2. __WARP_ACTIVATION_UNIX__ = the chain creation time (Warp cannot activate before Durango on the network) (Midnight SRS bls_midnight_2p14, not Filecoin).",
   "config": {
     "chainId": "__CHAIN_ID__",
     "feeConfig": {
@@ -27,7 +27,7 @@
       "adminAddresses": ["__SAFE__"]
     },
     "warpConfig": {
-      "blockTimestamp": 0,
+      "blockTimestamp": "__WARP_ACTIVATION_UNIX__",
       "quorumNumerator": 67
     },
     "midnightVerifierConfig": {

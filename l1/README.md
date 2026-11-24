@@ -8,7 +8,7 @@ Design: SOTA doc "SOTA: DPO2U Compliance L1 na Avalanche" (requirement IDs L1-*,
 Decisions (Frederico, 2026-11-23): runs in parallel with the Stellar escrow; L1 name **DPO2U**;
 validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the Fuji Safe's (VPS, desktop, phone).
 
-## Status: phases A1 + A2 (this folder + `contracts/l1/`)
+## Status: phases A1 + A2 + A3 local network (this folder + `contracts/l1/`)
 
 | Piece | File | State |
 |---|---|---|
@@ -17,6 +17,7 @@ validators **in Brazil** (hosting decided later); L1 Safe 2-of-3 signers = the F
 | C-Chain receiver (ICM-1) | `contracts/l1/DPO2UL1VerdictReceiver.sol` | Tested with a mock Teleporter |
 | MidnightVerifier (MVE-*) | `l1/precompile/` (precompile at `0x0300…00d2`) | A2: Midnight's own verifier via FFI; tested end to end on a simulated Subnet-EVM chain; accepts the Soroban verifier's proof |
 | Test doubles | `contracts/l1/test/L1Mocks.sol` | AllowList, verifier, Teleporter |
+| Local network (A3) | `l1/precompile/localnet`, `l1/localnet/` | The gate admits and revokes a wallet on a real AvalancheGo node, using a Midnight proof checked by the precompile (test circuit) |
 
 Nothing is deployed. No keys, no AVAX spent.
 
@@ -37,7 +38,7 @@ Nothing is deployed. No keys, no AVAX spent.
 - RPC (L1-6): no public endpoint. Validators, DPO2U and the regulator only, with access logs.
 
 `__PLACEHOLDER__` values: `__CHAIN_ID__` (pick an unused EVM chain id), `__SAFE__`, `__DEPLOYER__`,
-`__ICM_RELAYER__`, and the same two addresses without `0x` in `alloc`. Gas token has no value.
+`__ICM_RELAYER__`, and the same two addresses without `0x` in `alloc`. `__WARP_ACTIVATION_UNIX__` (a number, unquoted): the chain creation time, since Subnet-EVM refuses a Warp activation before Durango. Gas token has no value.
 
 ## Public input layout v0 (provisional)
 
@@ -61,5 +62,5 @@ demo, the PoA validators are DPO2U's, so the ICM signature is as trustworthy as 
 
 ## Next phases
 
-A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 real `evaluateTransfer` proof + CVM test token with delivery vs
+A2 MidnightVerifier: done (`l1/precompile/README.md`) · A3 local network: done (`l1/localnet/README.md`); still to do in A3: real `evaluateTransfer` proof + CVM test token with delivery vs
 payment · A4 ICM to the Fuji C-Chain + demo video.
