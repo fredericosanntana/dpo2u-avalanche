@@ -28,10 +28,12 @@ contract PassportGatedSettlement {
         minTier = minTier_;
     }
 
-    function settle(address payable payee) external payable {
+    /// @dev Salts are the subject-v2 salts of each side (the payee hands its own to the payer
+    ///      off chain). They end up in calldata: settling discloses the two links for this trade.
+    function settle(address payable payee, bytes32 payerSalt, bytes32 payeeSalt) external payable {
         if (msg.value == 0) revert ZeroAmount();
-        if (!oracle.isAccountValid(msg.sender, requiredPackId, minTier)) revert PayerNotCompliant();
-        if (!oracle.isAccountValid(payee, requiredPackId, minTier)) revert PayeeNotCompliant();
+        if (!oracle.isAccountValidV2(msg.sender, payerSalt, requiredPackId, minTier)) revert PayerNotCompliant();
+        if (!oracle.isAccountValidV2(payee, payeeSalt, requiredPackId, minTier)) revert PayeeNotCompliant();
         (bool ok, ) = payee.call{value: msg.value}("");
         if (!ok) revert TransferFailed();
         emit Settled(msg.sender, payee, msg.value);
