@@ -165,4 +165,12 @@ describe("DPO2USponsorshipRegistry", () => {
     expect(await f.oracle.pepperCommit()).to.equal(c);
     expect(await f.oracle.pepperEpoch()).to.equal(1);
   });
+
+  it("subjectOfV2 matches the gateway (cross vector: pepper 0x11..11, chainid 31337)", async () => {
+    const f = await deploy();
+    const salt = "0x90a3e1a081f7d44844e2b6871a5774cb8f62e90319b7cb4282ff88dd0439a51e";
+    expect(await f.oracle.subjectOfV2("0x000000000000000000000000000000000000dEaD", salt)).to.equal(
+      "0x39b2d1598a61a469b76dd208b90187c042c72bb74f1966942f215624e49d4f5d",
+    );
+  });
 });
