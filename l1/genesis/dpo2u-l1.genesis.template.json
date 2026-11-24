@@ -1,0 +1,48 @@
+{
+  "_comment": "DPO2U L1 (Subnet-EVM) genesis template, phase A1. Replace every __PLACEHOLDER__ before creating the chain; see l1/README.md. Safe = the L1 Safe 2-of-3 (VPS, desktop, phone). The ComplianceGate is not in the genesis: the Safe makes it a Manager of the Transaction AllowList after deploying it.",
+  "config": {
+    "chainId": "__CHAIN_ID__",
+    "feeConfig": {
+      "gasLimit": 15000000,
+      "targetBlockRate": 2,
+      "minBaseFee": 25000000000,
+      "targetGas": 20000000,
+      "baseFeeChangeDenominator": 36,
+      "minBlockGasCost": 0,
+      "maxBlockGasCost": 1000000,
+      "blockGasCostStep": 200000
+    },
+    "contractDeployerAllowListConfig": {
+      "blockTimestamp": 0,
+      "adminAddresses": ["__SAFE__"],
+      "enabledAddresses": ["__DEPLOYER__"]
+    },
+    "txAllowListConfig": {
+      "blockTimestamp": 0,
+      "adminAddresses": ["__SAFE__"],
+      "enabledAddresses": ["__DEPLOYER__", "__ICM_RELAYER__"]
+    },
+    "feeManagerConfig": {
+      "blockTimestamp": 0,
+      "adminAddresses": ["__SAFE__"]
+    },
+    "warpConfig": {
+      "blockTimestamp": 0,
+      "quorumNumerator": 67
+    }
+  },
+  "alloc": {
+    "__DEPLOYER_NO_0X__": { "balance": "0x52B7D2DCC80CD2E4000000" },
+    "__ICM_RELAYER_NO_0X__": { "balance": "0x3635C9ADC5DEA00000" }
+  },
+  "nonce": "0x0",
+  "timestamp": "0x0",
+  "extraData": "0x",
+  "gasLimit": "0xE4E1C0",
+  "difficulty": "0x0",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}
